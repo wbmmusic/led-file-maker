@@ -55,7 +55,7 @@ export default function Updates() {
         window.k.ipcRenderer.send('reactIsReady')
         window.k.receive('updater', (a, b) => {
             if (a === 'checking-for-update') console.log("Checking For Update")
-            else if (a === 'update-not-available') console.log("Up to date: v", b.version)
+            else if (a === 'update-not-available') console.log("Up to date: v" + b.version)
             else if (a === 'update-available') {
                 setDownloadSnack(old => ({ show: true, progress: 0 }))
             }
@@ -80,7 +80,7 @@ export default function Updates() {
         return () => {
             window.k.removeListener('updater')
         }
-    }, [])
+    }, [defaultDownloadSnack])
 
     return (
         <div>
