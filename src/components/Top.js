@@ -7,6 +7,7 @@ import TabPanel from '@mui/lab/TabPanel';
 import React, { useState } from 'react'
 import Player from './player/Player'
 import Generator from './generator/Generator';
+import Updates from './Updates';
 
 export default function Top() {
     const [tab, setTab] = useState('generator')
@@ -31,6 +32,7 @@ export default function Top() {
                     <Player />
                 </TabPanel>
             </TabContext>
+            <Updates />
         </Box>
     )
 }

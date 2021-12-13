@@ -1,6 +1,6 @@
 {
   "name": "led-file-maker",
-  "version": "0.0.18",
+  "version": "0.0.19",
   "private": true,
   "main": "public/app.js",
   "homepage": "./",
