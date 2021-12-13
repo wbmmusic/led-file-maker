@@ -66,7 +66,7 @@ export default function Updates() {
             else if (a === 'update-downloaded') {
                 console.log("Downloaded", b)
                 setDownloadSnack(defaultDownloadSnack)
-                setInstallSnack({ show: true, version: b.version })
+                setInstallSnack({ show: true, version: b.tag })
             }
             else if (a === 'error') console.log("Update Error", b)
             else console.log(a, b)
@@ -97,7 +97,7 @@ export default function Updates() {
                 open={installSnack.show}
                 autoHideDuration={30000}
                 onClose={handleClose}
-                message={`Relaunch to install v${installSnack.version}`}
+                message={`Relaunch to install ${installSnack.version}`}
                 action={installAction}
             />
         </div>
