@@ -20,6 +20,7 @@ export default function Updates() {
 
     const install = () => {
         console.log('Send ipc to run install here')
+        window.k.send('installUpdate')
     }
 
     const closeInstallSnack = () => setInstallSnack(old => ({ ...old, show: false }))
@@ -80,7 +81,7 @@ export default function Updates() {
         return () => {
             window.k.removeListener('updater')
         }
-    }, [defaultDownloadSnack])
+    }, [])
 
     return (
         <div>

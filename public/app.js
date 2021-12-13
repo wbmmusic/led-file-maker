@@ -199,6 +199,8 @@ const createWindow = () => {
             autoUpdater.on('download-progress', (info) => win.webContents.send('updater', 'download-progress', info))
             autoUpdater.on('update-downloaded', (info) => win.webContents.send('updater', 'update-downloaded', info))
 
+            ipcMain.on('installUpdate', () => autoUpdater.quitAndInstall())
+
             autoUpdater.checkForUpdates()
             setInterval(() => {
                 autoUpdater.checkForUpdates()
