@@ -193,6 +193,7 @@ const createWindow = () => {
             autoUpdater.on('checking-for-update', () => win.webContents.send('updater', "checking-for-update"))
             autoUpdater.on('update-available', () => win.webContents.send('updater', 'update-available'))
             autoUpdater.on('update-not-available', () => win.webContents.send('updater', 'update-not-available'))
+            autoUpdater.on('download-progress', () => win.webContents.send('updater', 'download-progress'))
             autoUpdater.on('update-downloaded', () => win.webContents.send('updater', 'update-downloaded'))
 
             autoUpdater.checkForUpdates()
