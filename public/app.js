@@ -188,7 +188,7 @@ const createWindow = () => {
 
     ipcMain.on('reactIsReady', () => {
         console.log('React is ready')
-        if (process.env.NODE_ENV === 'production') {
+        if (process.env.NODE_ENV !== 'development') {
             autoUpdater.on('error', (err) => win.webContents.send('updater', err))
             autoUpdater.on('checking-for-update', () => win.webContents.send('updater', "checking-for-update"))
             autoUpdater.on('update-available', () => win.webContents.send('updater', 'update-available'))
