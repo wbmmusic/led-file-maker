@@ -188,7 +188,6 @@ const createWindow = () => {
 
     ipcMain.on('reactIsReady', () => {
         console.log('React is ready')
-
         win.webContents.send('app_version', app.getVersion());
 
         if (app.isPackaged) {
@@ -207,9 +206,7 @@ const createWindow = () => {
             }, 1000 * 60 * 60);
         }
     })
-
-
-
+    
 }
 
 app.whenReady().then(() => {

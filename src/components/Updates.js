@@ -11,17 +11,11 @@ export default function Updates() {
     const [installSnack, setInstallSnack] = useState(defaultInstallSnack)
 
     const handleClose = (event, reason) => {
-        if (reason === 'clickaway') {
-            return;
-        }
-
+        if (reason === 'clickaway') return
         setDownloadSnack({ show: false });
     };
 
-    const install = () => {
-        console.log('Send ipc to run install here')
-        window.k.send('installUpdate')
-    }
+    const install = () => window.k.send('installUpdate')
 
     const closeInstallSnack = () => setInstallSnack(old => ({ ...old, show: false }))
 

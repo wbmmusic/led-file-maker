@@ -218,6 +218,7 @@ export default function Generator() {
                         .catch(err => {
                             let error = JSON.parse(err.toString().split("':")[1])
                             console.log(error)
+                            setLoadingModal(false)
                             setErrorModal({ show: true, message: error.msg, data: error.data })
                         })
                 }}
