@@ -1,6 +1,6 @@
 {
   "name": "led-file-maker",
-  "version": "0.0.15",
+  "version": "0.0.16",
   "private": true,
   "main": "public/app.js",
   "homepage": "./",
@@ -66,7 +66,7 @@
     "electron-rebuild": "^3.2.5"
   },
   "build": {
-    "productName": "WBM Tek LED File Maker",
+    "productName": "LED File Maker",
     "appId": "com.wbm.led-file-maker",
     "copyright": "WBM Tek",
     "extends": null,

@@ -15,13 +15,12 @@ function App() {
     })
 
     window.k.receive('app_version', (event, arg) => {
-
       document.title = 'LED File Maker --- v' + arg.version;
     });
 
     return () => {
-      window.k.ipcRenderer.removeListener('updater')
-      window.k.ipcRenderer.removeListener('app_version');
+      window.k.removeListener('updater')
+      window.k.removeListener('app_version');
     }
   }, [])
 
