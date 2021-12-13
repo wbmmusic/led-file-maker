@@ -14,13 +14,14 @@ function App() {
       else console.log(a, b)
     })
 
-    window.k.receive('app_version', (event, arg) => {
-      document.title = 'LED File Maker --- v' + arg.version;
+    window.k.receive('app_version', (version) => {
+      window.k.removeListener('app_version');
+      document.title = 'LED File Maker --- v' + version;
     });
 
     return () => {
       window.k.removeListener('updater')
-      window.k.removeListener('app_version');
+
     }
   }, [])
 
