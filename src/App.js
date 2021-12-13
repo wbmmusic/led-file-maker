@@ -7,8 +7,8 @@ function App() {
     window.k.receive('updater', (a, b) => {
       if (a === 'checking-for-update') console.log("Checking For Update")
       else if (a === 'update-not-available') console.log("Update not available", b)
-      else if (a === 'update-available') console.log("Update available", b)
-      else if (a === 'download-progress') console.log("Downloading", b)
+      else if (a === 'update-available') console.log("Update available", "Ver " + b.version)
+      else if (a === 'download-progress') console.log("Downloading", Math.round(b.percent) + "%")
       else if (a === 'update-downloaded') console.log("Downloaded", b)
       else if (a === 'error') console.log("Update Error", b)
       else console.log(a, b)
