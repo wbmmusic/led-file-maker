@@ -21,11 +21,12 @@ export default function Player() {
             .then(res => {
                 if (res !== 'canceled') {
                     setFile({
-                        data: res,
-                        frames: numberFromTwoBytes(res[0], res[1]),
-                        width: numberFromTwoBytes(res[2], res[3]),
-                        height: numberFromTwoBytes(res[4], res[5]),
-                        format: String.fromCharCode(res[6], res[7], res[8])
+                        name: res.name,
+                        data: res.data,
+                        frames: numberFromTwoBytes(res.data[0], res.data[1]),
+                        width: numberFromTwoBytes(res.data[2], res.data[3]),
+                        height: numberFromTwoBytes(res.data[4], res.data[5]),
+                        format: String.fromCharCode(res.data[6], res.data[7], res.data[8])
                     })
                 } else {
                     console.log('canceled')
@@ -39,6 +40,7 @@ export default function Player() {
             // first file or new file
             console.log("Open File", file)
             setFrame(0)
+            console.log(file)
         }
     }, [file])
 
@@ -134,6 +136,7 @@ export default function Player() {
                 <Fragment>
                     <Button size='small' color='error' onClick={() => setFrame(null)} >Clear File</Button>
                     <div style={{ display: 'inline-block', marginLeft: '10px', fontSize: '12px', width: '20px', textAlign: 'center' }}>{frame}</div>
+                    <div style={{ display: 'inline-block', marginLeft: '10px', fontSize: '12px', textAlign: 'center' }}>{file.name}</div>
                     <div style={{ display: 'inline-block', marginLeft: '10px', fontSize: '12px' }}>Frames: {file.frames}</div>
                     <div style={{ display: 'inline-block', marginLeft: '10px', fontSize: '12px' }}> {"Res: " + file.width + ' x ' + file.height}</div>
                     <div style={{ display: 'inline-block', marginLeft: '10px', fontSize: '12px' }}> {"Format: " + file.format.toUpperCase()}</div>

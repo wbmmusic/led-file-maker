@@ -1,6 +1,6 @@
 {
   "name": "led-file-maker",
-  "version": "0.0.25",
+  "version": "0.0.26",
   "private": true,
   "main": "public/app.js",
   "homepage": "./",
@@ -11,7 +11,7 @@
     "url": "https://www.marecewilliams.com"
   },
   "dependencies": {
-    "@emotion/react": "^11.7.0",
+    "@emotion/react": "^11.7.1",
     "@emotion/styled": "^11.6.0",
     "@mui/icons-material": "^5.2.1",
     "@mui/lab": "^5.0.0-alpha.59",

@@ -147,7 +147,10 @@ const createWindow = () => {
                     else {
                         const data = await readFile(res.filePaths[0])
                         //console.log(data)
-                        resolve(data)
+                        resolve({
+                            data,
+                            name: parse(res.filePaths[0]).base
+                        })
                     }
                 })
                 .catch(err => reject(err))
@@ -206,7 +209,7 @@ const createWindow = () => {
             }, 1000 * 60 * 60);
         }
     })
-    
+
 }
 
 app.whenReady().then(() => {

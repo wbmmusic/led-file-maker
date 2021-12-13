@@ -12,6 +12,7 @@ import TableBody from '@mui/material/TableBody'
 import TableCell from '@mui/material/TableCell'
 import TableHead from '@mui/material/TableHead'
 import TableRow from '@mui/material/TableRow'
+import Container from '@mui/material/Container'
 import Typography from '@mui/material/Typography'
 import CircularProgress from '@mui/material/CircularProgress'
 
@@ -100,8 +101,8 @@ export default function Generator() {
     )
 
     const FormatSelect = () => (
-        <div style={{ marginTop: '6px' }}>
-            <div style={{ paddingTop: '5px', display: 'flex', alignItems: 'center' }}>
+        <div style={{ marginTop: '6px', display: 'inline-block' }}>
+            <div style={{ paddingTop: '5px', display: 'flex', flexWrap: 'wrap', alignItems: 'center' }}>
                 <Box sx={{ width: 170 }}>
                     <FormControl fullWidth>
                         <InputLabel id="demo-simple-select-label">Output Type</InputLabel>
@@ -150,11 +151,14 @@ export default function Generator() {
                     <Divider style={{ marginTop: '6px', marginBottom: '6px' }} />
                     <ImagesBox />
                     <Divider style={{ marginTop: '6px', marginBottom: '6px' }} />
-                    <ImageOptions setOptions={options => setImageOptions(options)} />
-                    <FormatSelect />
-                    <div style={{ marginTop: '6px' }}>
-                        <Button disabled={isDisabled()} onClick={handleExport} size='small' variant='contained' >Export</Button>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-around' }}>
+                        <ImageOptions setOptions={options => setImageOptions(options)} />
+                        <FormatSelect />
+                        <div style={{ marginTop: '6px' }}>
+                            <Button disabled={isDisabled()} onClick={handleExport} size='small' variant='contained' >Export</Button>
+                        </div>
                     </div>
+                    <Divider style={{ marginTop: '6px', marginBottom: '6px' }} />
                 </div>
             )
         }

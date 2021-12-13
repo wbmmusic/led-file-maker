@@ -214,12 +214,14 @@ export default function ImageOptions({ setOptions }) {
     }, [state, setOptions])
 
     return (
-        <div style={{ display: 'flex' }}>
-            {startCornerGroup()}
-            <div style={{ width: '10px', display: 'inline-block' }} />
-            {flipGroup()}
-            <div style={{ width: '10px', display: 'inline-block' }} />
-            {orderGroup()}
+        <div style={{ display: 'inline-block' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap' }}>
+                {startCornerGroup()}
+                <div style={{ width: '10px', display: 'inline-block' }} />
+                {flipGroup()}
+                <div style={{ width: '10px', display: 'inline-block' }} />
+                {orderGroup()}
+            </div>
         </div>
     )
 }
