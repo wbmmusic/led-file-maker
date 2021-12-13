@@ -191,10 +191,10 @@ const createWindow = () => {
         if (process.env.NODE_ENV !== 'development') {
             autoUpdater.on('error', (err) => win.webContents.send('updater', err))
             autoUpdater.on('checking-for-update', () => win.webContents.send('updater', "checking-for-update"))
-            autoUpdater.on('update-available', () => win.webContents.send('updater', 'update-available'))
-            autoUpdater.on('update-not-available', () => win.webContents.send('updater', 'update-not-available'))
-            autoUpdater.on('download-progress', () => win.webContents.send('updater', 'download-progress'))
-            autoUpdater.on('update-downloaded', () => win.webContents.send('updater', 'update-downloaded'))
+            autoUpdater.on('update-available', (info) => win.webContents.send('updater', 'update-available', info))
+            autoUpdater.on('update-not-available', (info) => win.webContents.send('updater', 'update-not-available', info))
+            autoUpdater.on('download-progress', (info) => win.webContents.send('updater', 'download-progress', info))
+            autoUpdater.on('update-downloaded', (info) => win.webContents.send('updater', 'update-downloaded', info))
 
             autoUpdater.checkForUpdates()
             setInterval(() => {
