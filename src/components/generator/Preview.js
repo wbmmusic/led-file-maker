@@ -1,3 +1,4 @@
+import Divider from '@mui/material/Divider'
 import Box from '@mui/material/Box'
 import Paper from '@mui/material/Paper'
 import React, { Fragment, useEffect, useState } from 'react'
@@ -54,6 +55,7 @@ const Preview = ({ files, pause, imageOptions }) => {
                 <div style={{ display: 'inline-block', marginLeft: '6px', fontSize: '12px', width: '40px', textAlign: 'center' }} >{state}</div>
                 {makeSize()}
             </div>
+            <Divider style={{ marginBottom: '6px' }} />
             <img style={{ maxWidth: '100%', ...handleOptions() }} src={'atom://' + files[state].name} alt={files[state].name} />
             <div style={{ height: '6px' }} />
             <img style={{ width: '300px', border: '10px solid white', ...handleOptions() }} src={'atom://' + files[state].name} alt={files[state].name} />
