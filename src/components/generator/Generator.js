@@ -248,7 +248,7 @@ export default function Generator() {
                     <Export imageOptions={imageOptions} format={format} files={files} path={exportModal.outPath} close={handleCloseExport} />
                     <div style={{ textAlign: 'right' }} >
                         <Button onClick={async () => {
-                            await window.k.ipcRenderer.invoke('exportFrame', { frame: 'cancel', path: null, data: null })
+                            await window.k.ipcRenderer.invoke('cancelExport')
                             setExportModal(defaultExportModal)
                         }}
 

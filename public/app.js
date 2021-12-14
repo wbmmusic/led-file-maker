@@ -157,9 +157,6 @@ const createWindow = () => {
         })
     })
 
-    let outPath = ''
-    let tempPath = ''
-
     ipcMain.on('reactIsReady', () => {
         console.log('React is ready')
         win.webContents.send('app_version', app.getVersion());
@@ -187,11 +184,10 @@ const createWindow = () => {
         return [highByte, lowByte]
     }
 
-
-
     ipcMain.on('export', async (e, data) => {
-        outPath = data.path
-        tempPath = join(parse(outPath).dir, 'temp.wbmani')
+        let canceled = false
+        const outPath = data.path
+        const tempPath = join(parse(outPath).dir, 'temp.wbmani')
 
         console.log("Start Export")
         console.log('Writing File to temp path', tempPath)
@@ -214,43 +210,58 @@ const createWindow = () => {
             fileWriter.write(new Buffer.from(headers))
 
             for (let i = 0; i < files.length; i++) {
-                let output = []
-                try {
-                    const image = await Jimp.read(join(folderPath, files[i].name));
-                    // SEND TO FRONTEND HERE
-                    win.webContents.send('processedFrame', files[i].name)
-                    image.scan(0, 0, image.bitmap.width, image.bitmap.height, function (x, y, idx) {
-                        // x, y is the position of this pixel on the image
-                        // idx is the position start position of this rgba tuple in the bitmap Buffer
-                        // this is the image
+                if (canceled === false) {
+                    let output = []
+                    try {
+                        const image = await Jimp.read(join(folderPath, files[i].name));
+                        // SEND TO FRONTEND HERE
+                        win.webContents.send('processedFrame', files[i].name)
+                        image.scan(0, 0, image.bitmap.width, image.bitmap.height, function (x, y, idx) {
+                            // x, y is the position of this pixel on the image
+                            // idx is the position start position of this rgba tuple in the bitmap Buffer
+                            // this is the image
 
-                        var red = this.bitmap.data[idx + 0];
-                        var green = this.bitmap.data[idx + 1];
-                        var blue = this.bitmap.data[idx + 2];
-                        output.push(red, green, blue)
+                            var red = this.bitmap.data[idx + 0];
+                            var green = this.bitmap.data[idx + 1];
+                            var blue = this.bitmap.data[idx + 2];
+                            output.push(red, green, blue)
 
-                    })
-                    fileWriter.write(new Buffer.from(output))
-                } catch (error) {
-                    console.log(error)
-                    fileWriter.close()
-                    throw new Error(error)
-                }
-
+                        })
+                        fileWriter.write(new Buffer.from(output))
+                    } catch (error) {
+                        console.log(error)
+                        fileWriter.close()
+                        throw new Error(error)
+                    }
+                } else { break; }
             }
 
-            fileWriter.close()
-            fileWriter.on('finish', () => {
-                if (existsSync(outPath)) unlinkSync(outPath)
-                renameSync(tempPath, outPath)
-                win.webContents.send('finishedExport')
-                console.log('Export Done!', (Date.now() - exportStartTime) / 1000, "Seconds")
-            })
+            if (canceled === false) {
+                fileWriter.close()
+                fileWriter.on('finish', () => {
+                    if (existsSync(outPath)) unlinkSync(outPath)
+                    renameSync(tempPath, outPath)
+                    win.webContents.send('finishedExport')
+                    console.log('Export Done!', (Date.now() - exportStartTime) / 1000, "Seconds")
+                })
+            } else {
+                fileWriter.close()
+                fileWriter.on('close', () => {
+                    console.log("Post Cancel Cleanup")
+                    unlinkSync(tempPath)
+                })
+            }
+            ipcMain.removeHandler('cancelExport')
+
         })
 
+        ipcMain.handle('cancelExport', () => {
+            canceled = true
+            console.log("Cancel Press")
+            return 'canceled'
+        })
 
     })
-
 }
 
 app.whenReady().then(() => {
