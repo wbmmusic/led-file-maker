@@ -12,7 +12,6 @@ import TableBody from '@mui/material/TableBody'
 import TableCell from '@mui/material/TableCell'
 import TableHead from '@mui/material/TableHead'
 import TableRow from '@mui/material/TableRow'
-import Container from '@mui/material/Container'
 import Typography from '@mui/material/Typography'
 import CircularProgress from '@mui/material/CircularProgress'
 
@@ -147,7 +146,7 @@ export default function Generator() {
         if (files.length > 0) {
             return (
                 <div>
-                    <Preview pause={exportModal.show} style={{ width: '40px', height: '1px' }} files={files} />
+                    <Preview imageOptions={imageOptions} pause={exportModal.show} style={{ width: '40px', height: '1px' }} files={files} />
                     <Divider style={{ marginTop: '6px', marginBottom: '6px' }} />
                     <ImagesBox />
                     <Divider style={{ marginTop: '6px', marginBottom: '6px' }} />

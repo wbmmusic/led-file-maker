@@ -2,6 +2,21 @@ import React, { useEffect, useRef } from 'react'
 
 export default function ImageProcessor({ file, data, format, imageOptions }) {
     const canvasRef = useRef(null)
+    const imageRef = useRef(null)
+
+    const handleFlip = () => {
+        if (imageOptions) {
+            let out = [1, 1]
+            if (imageOptions.flip.horizontal) out[0] = -1
+            if (imageOptions.flip.vertical) out[1] = -1
+            return out
+        }
+    }
+
+    useEffect(() => {
+        console.log("DDDDDDDDDD")
+        console.log(imageOptions)
+    }, [imageOptions])
 
     useEffect(() => {
         if (file !== null && file !== undefined) {
@@ -9,8 +24,12 @@ export default function ImageProcessor({ file, data, format, imageOptions }) {
             img.src = `atom://${file.name}`
             const canvas = canvasRef.current
             const context = canvas.getContext('2d')
+            
             context.clearRect(0, 0, file.width, file.height)
             context.drawImage(img, 0, 0)
+            
+            imageRef.current.src = canvas.toDataURL();
+
             let imageData = context.getImageData(0, 0, file.width, file.height)
             //console.log(imageData)
             let outData = []
@@ -47,7 +66,7 @@ export default function ImageProcessor({ file, data, format, imageOptions }) {
                     break;
             }
 
-            console.log(imageOptions)
+            //console.log(imageOptions)
 
             for (let i = 0; i < imageData.data.length; i = i + 4) {
                 copyPixels(imageData.data[i], imageData.data[i + 1], imageData.data[i + 2])
@@ -67,7 +86,7 @@ export default function ImageProcessor({ file, data, format, imageOptions }) {
                 <canvas ref={canvasRef} width={file.width} height={file.height} />
             </div>
             <div style={{ marginLeft: '10px' }}>
-                <img style={{ width: '100%' }} src={`atom://${file.name}`} alt={file.name} />
+                <img ref={imageRef} style={{ width: '100%' }}  alt={file.name} />
             </div>
         </div>
     )

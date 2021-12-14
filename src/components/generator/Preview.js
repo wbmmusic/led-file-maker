@@ -2,7 +2,7 @@ import Box from '@mui/material/Box'
 import Paper from '@mui/material/Paper'
 import React, { Fragment, useEffect, useState } from 'react'
 
-const Preview = ({ files, pause }) => {
+const Preview = ({ files, pause, imageOptions }) => {
     const [state, setState] = useState(0)
 
     const makeSize = () => {
@@ -38,7 +38,14 @@ const Preview = ({ files, pause }) => {
 
     }, [files, pause])
 
-    if (files.length <= 0) return <div></div>
+    if (files.length <= 0 || !imageOptions) return <div></div>
+
+    const handleOptions = () => {
+        let out = ''
+        if (imageOptions.flip.horizontal) out = out + 'scaleY(-1)'
+        if (imageOptions.flip.vertical) out = out + 'scaleX(-1)'
+        return { transform: out }
+    }
 
     return (
         <Box style={{ padding: '8px', backgroundColor: 'lightgray' }} component={Paper}>
@@ -47,9 +54,9 @@ const Preview = ({ files, pause }) => {
                 <div style={{ display: 'inline-block', marginLeft: '6px', fontSize: '12px', width: '40px', textAlign: 'center' }} >{state}</div>
                 {makeSize()}
             </div>
-            <img style={{ maxWidth: '100%' }} src={'atom://' + files[state].name} alt={files[state].name} />
+            <img style={{ maxWidth: '100%', ...handleOptions() }} src={'atom://' + files[state].name} alt={files[state].name} />
             <div style={{ height: '6px' }} />
-            <img style={{ width: '300px', border: '10px solid white' }} src={'atom://' + files[state].name} alt={files[state].name} />
+            <img style={{ width: '300px', border: '10px solid white', ...handleOptions() }} src={'atom://' + files[state].name} alt={files[state].name} />
         </Box>
     )
 }
