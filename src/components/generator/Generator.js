@@ -259,7 +259,7 @@ export default function Generator() {
             <Modal
                 open={loadingModal}
                 aria-labelledby="modal-modal-title"
-                aria-describedby="modal-modal-description"
+                aria-describedby="modal-modal-description" 
             >
                 <Box sx={style} component={Paper} >
                     <Typography id="modal-modal-title" variant="h6" component="h2">
