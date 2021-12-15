@@ -209,6 +209,38 @@ const createWindow = () => {
             ]
             fileWriter.write(new Buffer.from(headers))
 
+            let getRGB
+
+            switch (data.format) {
+                case 'rgb':
+                    getRGB = (r, g, b) => [r, g, b]
+                    break;
+
+                case 'rbg':
+                    getRGB = (r, b, g) => [r, g, b]
+                    break;
+
+                case 'bgr':
+                    getRGB = (b, g, r) => [r, g, b]
+                    break;
+
+                case 'brg':
+                    getRGB = (b, r, g) => [r, g, b]
+                    break;
+
+                case 'grb':
+                    getRGB = (g, r, b) => [r, g, b]
+                    break;
+
+                case 'gbr':
+                    getRGB = (g, b, r) => [r, g, b]
+                    break;
+
+                default:
+                    getRGB = (r, g, b) => [r, g, b]
+                    break;
+            }
+
             for (let i = 0; i < files.length; i++) {
                 if (canceled === false) {
                     let output = []
@@ -220,11 +252,7 @@ const createWindow = () => {
                             // x, y is the position of this pixel on the image
                             // idx is the position start position of this rgba tuple in the bitmap Buffer
                             // this is the image
-
-                            var red = this.bitmap.data[idx + 0];
-                            var green = this.bitmap.data[idx + 1];
-                            var blue = this.bitmap.data[idx + 2];
-                            output.push(red, green, blue)
+                            output.push(...getRGB(this.bitmap.data[idx + 0], this.bitmap.data[idx + 1], this.bitmap.data[idx + 2]))
 
                         })
                         fileWriter.write(new Buffer.from(output))
@@ -252,7 +280,11 @@ const createWindow = () => {
                 })
             }
             ipcMain.removeHandler('cancelExport')
+        })
 
+        fileWriter.on('error', (err) => {
+            console.log(err)
+            ipcMain.removeHandler('cancelExport')
         })
 
         ipcMain.handle('cancelExport', () => {
