@@ -54,6 +54,7 @@ const createWindow = () => {
         width: 800,
         height: 600,
         icon: __dirname + '/favicon.ico',
+        show: false,
         webPreferences: {
             preload: join(__dirname, 'preload.js')
         },
@@ -66,6 +67,8 @@ const createWindow = () => {
         slashes: true
     });
     win.loadURL(startUrl);
+
+    win.on('ready-to-show', () => win.show())
 
     const configIPC = () => {
         ipcMain.handle('chooseFolder', async (e) => {
