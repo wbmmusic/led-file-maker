@@ -16,7 +16,7 @@
         "@mui/icons-material": "^5.5.1",
         "@mui/lab": "^5.0.0-alpha.74",
         "@mui/material": "^5.5.2",
-        "@testing-library/jest-dom": "^5.16.2",
+        "@testing-library/jest-dom": "^5.16.3",
         "@testing-library/react": "^12.1.4",
         "@testing-library/user-event": "^13.5.0",
         "electron-updater": "^4.6.5",
@@ -62,7 +62,7 @@
         ]
     },
     "devDependencies": {
-        "electron": "^17.1.2",
+        "electron": "^17.2.0",
         "electron-builder": "^22.14.13",
         "electron-rebuild": "^3.2.7"
     },
