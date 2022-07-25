@@ -14,11 +14,11 @@
         "@emotion/react": "^11.9.3",
         "@emotion/styled": "^11.9.3",
         "@mui/icons-material": "^5.8.4",
-        "@mui/lab": "^5.0.0-alpha.90",
-        "@mui/material": "^5.9.0",
+        "@mui/lab": "^5.0.0-alpha.91",
+        "@mui/material": "^5.9.1",
         "@testing-library/jest-dom": "^5.16.4",
         "@testing-library/react": "^13.3.0",
-        "@testing-library/user-event": "^14.2.5",
+        "@testing-library/user-event": "^14.3.0",
         "electron-updater": "^5.0.5",
         "foreman": "^3.0.1",
         "image-size": "^1.0.2",
@@ -62,7 +62,7 @@
         ]
     },
     "devDependencies": {
-        "electron": "^19.0.8",
+        "electron": "^19.0.9",
         "electron-builder": "^23.1.0",
         "electron-rebuild": "^3.2.8"
     },
