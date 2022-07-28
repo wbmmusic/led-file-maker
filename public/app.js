@@ -11,23 +11,23 @@ const Jimp = require('jimp-native')
 let folderPath = ''
 let files = []
 
-const loadFolder = async (path) => {
+const loadFolder = async(path) => {
     folderPath = path
     const fileNames = readdirSync(path)
 
-    return new Promise(async (resolve, reject) => {
+    return new Promise(async(resolve, reject) => {
         files = []
         let fileParams = []
         let ignored = []
 
         for (let i = 0; i < fileNames.length; i++) {
             const filePath = join(folderPath, fileNames[i])
-            //console.log(filePath)
+                //console.log(filePath)
             try {
                 const info = await sizeOf(filePath)
-                //console.log(info)
+                    //console.log(info)
                 if (!fileParams.find(type => JSON.stringify(type) === JSON.stringify(info))) fileParams.push(info)
-                files.push({ ...info, name: fileNames[i] })
+                files.push({...info, name: fileNames[i] })
             } catch (error) {
                 ignored.push(fileNames[i])
             }
@@ -71,8 +71,8 @@ const createWindow = () => {
     win.on('ready-to-show', () => win.show())
 
     const configIPC = () => {
-        ipcMain.handle('chooseFolder', async (e) => {
-            return new Promise(async (resolve, reject) => {
+        ipcMain.handle('chooseFolder', async(e) => {
+            return new Promise(async(resolve, reject) => {
                 dialog.showOpenDialog(win, { properties: ['openDirectory'] })
                     .then(async res => {
                         if (res.canceled === true) {
@@ -100,19 +100,16 @@ const createWindow = () => {
             return files
         })
 
-        ipcMain.handle('chooseOutput', async () => {
-            return new Promise(async (resolve, reject) => {
+        ipcMain.handle('chooseOutput', async() => {
+            return new Promise(async(resolve, reject) => {
                 dialog.showSaveDialog(
-                    win,
-                    {
-                        filters: [
-                            {
+                        win, {
+                            filters: [{
                                 name: 'WBM Animation',
                                 extensions: ['wbmani']
-                            }
-                        ]
-                    }
-                )
+                            }]
+                        }
+                    )
                     .then(res => {
                         if (res.canceled === true) {
                             //console.log(res)
@@ -128,29 +125,27 @@ const createWindow = () => {
             })
         })
 
-        ipcMain.handle('saveWbmAni', async (e, path, data) => {
+        ipcMain.handle('saveWbmAni', async(e, path, data) => {
             //console.log(data)
-            return new Promise(async (resolve, reject) => {
+            return new Promise(async(resolve, reject) => {
                 await writeFile(path, data)
                 resolve('saved')
             })
         })
 
-        ipcMain.handle('openAniFile', async () => {
-            return new Promise(async (resolve, reject) => {
+        ipcMain.handle('openAniFile', async() => {
+            return new Promise(async(resolve, reject) => {
                 dialog.showOpenDialog(win, {
-                    filters: [
-                        {
+                        filters: [{
                             name: 'WBM Animation',
                             extensions: ['wbmani']
-                        }
-                    ]
-                })
+                        }]
+                    })
                     .then(async res => {
                         if (res.canceled === true) resolve('canceled')
                         else {
                             const data = await readFile(res.filePaths[0])
-                            //console.log(data)
+                                //console.log(data)
                             resolve({
                                 data,
                                 name: parse(res.filePaths[0]).base
@@ -188,21 +183,23 @@ const createWindow = () => {
             return [highByte, lowByte]
         }
 
-        ipcMain.on('export', async (e, data) => {
+        ipcMain.on('export', async(e, data) => {
             let canceled = false
             const outPath = data.path
             const tempPath = join(parse(outPath).dir, 'temp.wbmani')
+            const options = data.imageOptions
 
             console.log("Start Export")
             console.log('Writing File to temp path', tempPath)
             console.log('Saving to', outPath, 'after')
+            console.log("OPTIONS", options)
 
             let exportStartTime = Date.now()
             let fileWriter = createWriteStream(tempPath)
 
             const makeFormatBytes = () => [data.format.charCodeAt(0), data.format.charCodeAt(1), data.format.charCodeAt(2)]
 
-            fileWriter.on('ready', async () => {
+            fileWriter.on('ready', async() => {
                 console.log('File writer ready')
 
                 let headers = [
@@ -245,6 +242,8 @@ const createWindow = () => {
                         break;
                 }
 
+
+
                 for (let i = 0; i < files.length; i++) {
                     if (canceled === false) {
                         let output = []
@@ -252,20 +251,54 @@ const createWindow = () => {
                             const image = await Jimp.read(join(folderPath, files[i].name));
                             // SEND TO FRONTEND HERE
                             win.webContents.send('processedFrame', files[i].name)
-                            image.scan(0, 0, image.bitmap.width, image.bitmap.height, function (x, y, idx) {
+                            let pixels = []
+                            image.scan(0, 0, image.bitmap.width, image.bitmap.height, function(x, y, idx) {
                                 // x, y is the position of this pixel on the image
                                 // idx is the position start position of this rgba tuple in the bitmap Buffer
                                 // this is the image
-                                output.push(...getRGB(this.bitmap.data[idx + 0], this.bitmap.data[idx + 1], this.bitmap.data[idx + 2]))
-
+                                const thisPixel = getRGB(this.bitmap.data[idx + 0], this.bitmap.data[idx + 1], this.bitmap.data[idx + 2])
+                                pixels.push(thisPixel)
                             })
+
+                            if (options.startCorner === 'topLeft') {
+                                if (options.pixelOrder === 'horizontal') {
+                                    pixels.forEach(px => output.push(...px))
+                                } else if (options.pixelOrder === 'vertical') {
+                                    for (let col = 0; col < image.bitmap.width; col++) {
+                                        for (let row = 0; row < image.bitmap.height; row++) {
+                                            output.push(...pixels[row * image.bitmap.width + col])
+                                        }
+                                    }
+                                }
+                            } else if (options.startCorner === 'topRight') {
+                                if (options.pixelOrder === 'horizontal') {
+                                    for (let col = 0; col < image.bitmap.width; col++) {
+                                        for (let row = image.bitmap.height - 1; row >= 0; row--) {
+                                            output.push(...pixels[row * image.bitmap.width + col])
+                                        }
+                                    }
+                                } else throw new Error("Pixel Order Error in topRight")
+                            } else if (options.startCorner === 'bottomLeft') {
+                                if (options.pixelOrder === 'horizontal') {
+                                    for (let row = image.bitmap.height - 1; row >= 0; row--) {
+                                        for (let col = 0; col < image.bitmap.width; col++) {
+                                            output.push(...pixels[row * image.bitmap.width + col])
+                                        }
+                                    }
+                                } else throw new Error("Pixel Order Error in bottomLeft")
+                            } else {
+                                throw new Error("Start Corner Error")
+                            }
+                            //console.log(pixels)
                             fileWriter.write(new Buffer.from(output))
                         } catch (error) {
                             console.log(error)
                             fileWriter.close()
                             throw new Error(error)
                         }
-                    } else { break; }
+                    } else {
+                        break;
+                    }
                 }
 
                 if (canceled === false) {
