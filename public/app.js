@@ -261,6 +261,7 @@ const createWindow = () => {
                             })
 
                             if (options.startCorner === 'topLeft') {
+                                
                                 if (options.pixelOrder === 'horizontal') {
                                     pixels.forEach(px => output.push(...px))
                                 } else if (options.pixelOrder === 'vertical') {
@@ -271,6 +272,7 @@ const createWindow = () => {
                                     }
                                 }
                             } else if (options.startCorner === 'topRight') {
+
                                 if (options.pixelOrder === 'horizontal') {
                                     for (let row = 0; row < image.bitmap.height; row++) {
                                         for (let col = image.bitmap.width - 1; col >= 0; col--) {
@@ -280,6 +282,7 @@ const createWindow = () => {
                                 } else throw new Error("Pixel Order Error in topRight")
 
                             } else if (options.startCorner === 'bottomLeft') {
+
                                 if (options.pixelOrder === 'horizontal') {
                                     for (let row = image.bitmap.height - 1; row >= 0; row--) {
                                         for (let col = 0; col < image.bitmap.width; col++) {
@@ -289,6 +292,7 @@ const createWindow = () => {
                                 } else throw new Error("Pixel Order Error in bottomLeft")
 
                             } else if (options.startCorner === 'bottomLeft') {
+
                                 if (options.pixelOrder === 'horizontal') {
                                     for (let row = image.bitmap.height - 1; row >= 0; row--) {
                                         for (let col = 0; col < image.bitmap.width; col++) {
