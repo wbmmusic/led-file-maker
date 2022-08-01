@@ -34,14 +34,14 @@
         "test": "react-scripts test",
         "eject": "react-scripts eject",
         "electron": "electron .",
+        "postinstall": "electron-builder install-app-deps",
         "dev": "nf start",
-        "refresh": "yarn upgrade --latest && yarn rebuild",
-        "rebuild": "electron-rebuild -f",
+        "refresh": "yarn upgrade --latest",
         "package": "electron-builder build -c.extraMetadata.main=build/app.js --publish never",
         "deploy": "electron-builder build -c.extraMetadata.main=build/app.js --publish always",
         "backup": "git add . && git commit -m %NPM_PACKAGE_VERSION% && git push origin main",
         "try": "yarn build && yarn package ",
-        "upload": "yarn build && yarn backup && yarn deploy "
+        "upload": "yarn build && yarn backup && yarn deploy"
     },
     "eslintConfig": {
         "extends": [
@@ -63,8 +63,7 @@
     },
     "devDependencies": {
         "electron": "^19.0.10",
-        "electron-builder": "^23.3.3",
-        "electron-rebuild": "^3.2.8"
+        "electron-builder": "^23.3.3"
     },
     "build": {
         "productName": "LED File Maker",
