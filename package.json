@@ -11,15 +11,15 @@
         "url": "https://www.marecewilliams.com"
     },
     "dependencies": {
-        "@emotion/react": "^11.9.3",
-        "@emotion/styled": "^11.9.3",
+        "@emotion/react": "^11.10.0",
+        "@emotion/styled": "^11.10.0",
         "@mui/icons-material": "^5.8.4",
         "@mui/lab": "^5.0.0-alpha.92",
         "@mui/material": "^5.9.2",
         "@testing-library/jest-dom": "^5.16.4",
         "@testing-library/react": "^13.3.0",
         "@testing-library/user-event": "^14.3.0",
-        "electron-updater": "^5.0.5",
+        "electron-updater": "^5.2.1",
         "foreman": "^3.0.1",
         "image-size": "^1.0.2",
         "jimp-native": "^0.0.7",
@@ -63,7 +63,7 @@
     },
     "devDependencies": {
         "electron": "^19.0.10",
-        "electron-builder": "^23.1.0",
+        "electron-builder": "^23.3.3",
         "electron-rebuild": "^3.2.8"
     },
     "build": {
