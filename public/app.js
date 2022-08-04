@@ -56,7 +56,8 @@ const createWindow = () => {
         icon: __dirname + '/favicon.ico',
         show: false,
         webPreferences: {
-            preload: join(__dirname, 'preload.js')
+            preload: join(__dirname, 'preload.js'),
+            sandbox: false
         },
         autoHideMenuBar: true
     })
