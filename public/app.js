@@ -261,7 +261,7 @@ const createWindow = () => {
                             })
 
                             if (options.startCorner === 'topLeft') {
-                                
+
                                 if (options.pixelOrder === 'horizontal') {
                                     pixels.forEach(px => output.push(...px))
                                 } else if (options.pixelOrder === 'vertical') {
@@ -270,7 +270,23 @@ const createWindow = () => {
                                             output.push(...pixels[row * image.bitmap.width + col])
                                         }
                                     }
-                                }
+                                } else if (options.pixelOrder === 'horizontalAlternate') {
+                                    for (let row = 0; row < image.bitmap.height; row++) {
+
+                                        if (row & 0x01) {
+                                            for (let col = image.bitmap.width - 1; col >= 0; col--) {
+                                                output.push(...pixels[row * image.bitmap.width + col])
+                                            }
+                                        } else {
+                                            for (let col = 0; col < image.bitmap.width; col++) {
+                                                output.push(...pixels[row * image.bitmap.width + col])
+                                            }
+                                        }
+
+
+                                    }
+                                } else throw new Error("Pixel Order Error in topLeft")
+
                             } else if (options.startCorner === 'topRight') {
 
                                 if (options.pixelOrder === 'horizontal') {
@@ -278,6 +294,21 @@ const createWindow = () => {
                                         for (let col = image.bitmap.width - 1; col >= 0; col--) {
                                             output.push(...pixels[row * image.bitmap.width + col])
                                         }
+                                    }
+                                } else if (options.pixelOrder === 'horizontalAlternate') {
+                                    for (let row = image.bitmap.height - 1; row >= 0; row--) {
+
+                                        if (row & 0x01) {
+                                            for (let col = image.bitmap.width - 1; col >= 0; col--) {
+                                                output.push(...pixels[row * image.bitmap.width + col])
+                                            }
+                                        } else {
+                                            for (let col = 0; col < image.bitmap.width; col++) {
+                                                output.push(...pixels[row * image.bitmap.width + col])
+                                            }
+                                        }
+
+
                                     }
                                 } else throw new Error("Pixel Order Error in topRight")
 
@@ -289,6 +320,20 @@ const createWindow = () => {
                                             output.push(...pixels[row * image.bitmap.width + col])
                                         }
                                     }
+                                } else if (options.pixelOrder === 'verticalAlternate') {
+
+                                    for (let col = 0; col < image.bitmap.width; col++) {
+                                        if (col & 0x01) {
+                                            for (let row = 0; row < image.bitmap.height; row++) {
+                                                output.push(...pixels[row * image.bitmap.width + col])
+                                            }
+                                        } else {
+                                            for (let row = image.bitmap.height - 1; row >= 0; row--) {
+                                                output.push(...pixels[row * image.bitmap.width + col])
+                                            }
+                                        }
+                                    }
+
                                 } else throw new Error("Pixel Order Error in bottomLeft")
 
                             } else if (options.startCorner === 'bottomLeft') {
@@ -309,6 +354,20 @@ const createWindow = () => {
                                             output.push(...pixels[row * image.bitmap.width + col])
                                         }
                                     }
+                                } else if (options.pixelOrder === 'verticalAlternate') {
+
+                                    for (let col = image.bitmap.width - 1; col >= 0; col--) {
+                                        if (col & 0x01) {
+                                            for (let row = 0; row < image.bitmap.height; row++) {
+                                                output.push(...pixels[row * image.bitmap.width + col])
+                                            }
+                                        } else {
+                                            for (let row = image.bitmap.height - 1; row >= 0; row--) {
+                                                output.push(...pixels[row * image.bitmap.width + col])
+                                            }
+                                        }
+                                    }
+
                                 } else throw new Error("Pixel Order Error in bottomRight")
 
                             } else {
