@@ -1,13 +1,13 @@
-import Tab from "@mui/material/Tab";
-import Divider from "@mui/material/Divider";
-import Box from "@mui/material/Box";
 import TabContext from "@mui/lab/TabContext";
 import TabList from "@mui/lab/TabList";
 import TabPanel from "@mui/lab/TabPanel";
+import Box from "@mui/material/Box";
+import Divider from "@mui/material/Divider";
+import Tab from "@mui/material/Tab";
 import React, { useState } from "react";
-import Player from "./player/Player";
-import Generator from "./generator/Generator";
 import Updates from "./Updates";
+import Generator from "./generator/Generator";
+import Player from "./player/Player";
 
 export default function Top() {
   const [tab, setTab] = useState("generator");
