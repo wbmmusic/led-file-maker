@@ -6,7 +6,7 @@ const { readdirSync, existsSync, unlinkSync, createWriteStream, renameSync } = r
 const { promisify } = require('util');
 const { writeFile, readFile } = require('fs/promises');
 const sizeOf = promisify(require('image-size'))
-const Jimp = require('jimp-native')
+const sharp = require('sharp');
 
 let folderPath = ''
 let files = []
@@ -249,38 +249,41 @@ const createWindow = () => {
                     if (canceled === false) {
                         let output = []
                         try {
-                            const image = await Jimp.read(join(folderPath, files[i].name));
+                            const { data, info } = await sharp(join(folderPath, files[i].name)).raw().toBuffer({ resolveWithObject: true })
+                            // console.log({ data, info })
+                            // throw new Error('Dummy')
                             // SEND TO FRONTEND HERE
                             win.webContents.send('processedFrame', files[i].name)
                             let pixels = []
-                            image.scan(0, 0, image.bitmap.width, image.bitmap.height, function (x, y, idx) {
-                                // x, y is the position of this pixel on the image
-                                // idx is the position start position of this rgba tuple in the bitmap Buffer
-                                // this is the image
-                                const thisPixel = getRGB(this.bitmap.data[idx + 0], this.bitmap.data[idx + 1], this.bitmap.data[idx + 2])
+                            // console.log("Number of pixels", info.width * info.height)
+                            // console.log("Confirmed", data.length / info.channels)
+
+                            for (let pixelNumber = 0; pixelNumber < (info.height * info.width); pixelNumber++) {
+                                const pointer = pixelNumber * info.channels
+                                const thisPixel = getRGB(data[pointer + 0], data[pointer + 1], data[pointer + 2])
                                 pixels.push(thisPixel)
-                            })
+                            }
 
                             if (options.startCorner === 'topLeft') {
 
                                 if (options.pixelOrder === 'horizontal') {
                                     pixels.forEach(px => output.push(...px))
                                 } else if (options.pixelOrder === 'vertical') {
-                                    for (let col = 0; col < image.bitmap.width; col++) {
-                                        for (let row = 0; row < image.bitmap.height; row++) {
-                                            output.push(...pixels[row * image.bitmap.width + col])
+                                    for (let col = 0; col < info.width; col++) {
+                                        for (let row = 0; row < info.height; row++) {
+                                            output.push(...pixels[row * info.width + col])
                                         }
                                     }
                                 } else if (options.pixelOrder === 'horizontalAlternate') {
-                                    for (let row = 0; row < image.bitmap.height; row++) {
+                                    for (let row = 0; row < info.height; row++) {
 
                                         if (row & 0x01) {
-                                            for (let col = image.bitmap.width - 1; col >= 0; col--) {
-                                                output.push(...pixels[row * image.bitmap.width + col])
+                                            for (let col = info.width - 1; col >= 0; col--) {
+                                                output.push(...pixels[row * info.width + col])
                                             }
                                         } else {
-                                            for (let col = 0; col < image.bitmap.width; col++) {
-                                                output.push(...pixels[row * image.bitmap.width + col])
+                                            for (let col = 0; col < info.width; col++) {
+                                                output.push(...pixels[row * info.width + col])
                                             }
                                         }
 
@@ -291,21 +294,21 @@ const createWindow = () => {
                             } else if (options.startCorner === 'topRight') {
 
                                 if (options.pixelOrder === 'horizontal') {
-                                    for (let row = 0; row < image.bitmap.height; row++) {
-                                        for (let col = image.bitmap.width - 1; col >= 0; col--) {
-                                            output.push(...pixels[row * image.bitmap.width + col])
+                                    for (let row = 0; row < info.height; row++) {
+                                        for (let col = info.width - 1; col >= 0; col--) {
+                                            output.push(...pixels[row * info.width + col])
                                         }
                                     }
                                 } else if (options.pixelOrder === 'horizontalAlternate') {
-                                    for (let row = image.bitmap.height - 1; row >= 0; row--) {
+                                    for (let row = info.height - 1; row >= 0; row--) {
 
                                         if (row & 0x01) {
-                                            for (let col = image.bitmap.width - 1; col >= 0; col--) {
-                                                output.push(...pixels[row * image.bitmap.width + col])
+                                            for (let col = info.width - 1; col >= 0; col--) {
+                                                output.push(...pixels[row * info.width + col])
                                             }
                                         } else {
-                                            for (let col = 0; col < image.bitmap.width; col++) {
-                                                output.push(...pixels[row * image.bitmap.width + col])
+                                            for (let col = 0; col < info.width; col++) {
+                                                output.push(...pixels[row * info.width + col])
                                             }
                                         }
 
@@ -316,21 +319,21 @@ const createWindow = () => {
                             } else if (options.startCorner === 'bottomLeft') {
 
                                 if (options.pixelOrder === 'horizontal') {
-                                    for (let row = image.bitmap.height - 1; row >= 0; row--) {
-                                        for (let col = 0; col < image.bitmap.width; col++) {
-                                            output.push(...pixels[row * image.bitmap.width + col])
+                                    for (let row = info.height - 1; row >= 0; row--) {
+                                        for (let col = 0; col < info.width; col++) {
+                                            output.push(...pixels[row * info.width + col])
                                         }
                                     }
                                 } else if (options.pixelOrder === 'verticalAlternate') {
 
-                                    for (let col = 0; col < image.bitmap.width; col++) {
+                                    for (let col = 0; col < info.width; col++) {
                                         if (col & 0x01) {
-                                            for (let row = 0; row < image.bitmap.height; row++) {
-                                                output.push(...pixels[row * image.bitmap.width + col])
+                                            for (let row = 0; row < info.height; row++) {
+                                                output.push(...pixels[row * info.width + col])
                                             }
                                         } else {
-                                            for (let row = image.bitmap.height - 1; row >= 0; row--) {
-                                                output.push(...pixels[row * image.bitmap.width + col])
+                                            for (let row = info.height - 1; row >= 0; row--) {
+                                                output.push(...pixels[row * info.width + col])
                                             }
                                         }
                                     }
@@ -340,9 +343,9 @@ const createWindow = () => {
                             } else if (options.startCorner === 'bottomLeft') {
 
                                 if (options.pixelOrder === 'horizontal') {
-                                    for (let row = image.bitmap.height - 1; row >= 0; row--) {
-                                        for (let col = 0; col < image.bitmap.width; col++) {
-                                            output.push(...pixels[row * image.bitmap.width + col])
+                                    for (let row = info.height - 1; row >= 0; row--) {
+                                        for (let col = 0; col < info.width; col++) {
+                                            output.push(...pixels[row * info.width + col])
                                         }
                                     }
                                 } else throw new Error("Pixel Order Error in bottomLeft")
@@ -350,21 +353,21 @@ const createWindow = () => {
                             } else if (options.startCorner === 'bottomRight') {
 
                                 if (options.pixelOrder === 'vertical') {
-                                    for (let col = image.bitmap.width - 1; col >= 0; col--) {
-                                        for (let row = image.bitmap.height - 1; row >= 0; row--) {
-                                            output.push(...pixels[row * image.bitmap.width + col])
+                                    for (let col = info.width - 1; col >= 0; col--) {
+                                        for (let row = info.height - 1; row >= 0; row--) {
+                                            output.push(...pixels[row * info.width + col])
                                         }
                                     }
                                 } else if (options.pixelOrder === 'verticalAlternate') {
 
-                                    for (let col = image.bitmap.width - 1; col >= 0; col--) {
+                                    for (let col = info.width - 1; col >= 0; col--) {
                                         if (col & 0x01) {
-                                            for (let row = 0; row < image.bitmap.height; row++) {
-                                                output.push(...pixels[row * image.bitmap.width + col])
+                                            for (let row = 0; row < info.height; row++) {
+                                                output.push(...pixels[row * info.width + col])
                                             }
                                         } else {
-                                            for (let row = image.bitmap.height - 1; row >= 0; row--) {
-                                                output.push(...pixels[row * image.bitmap.width + col])
+                                            for (let row = info.height - 1; row >= 0; row--) {
+                                                output.push(...pixels[row * info.width + col])
                                             }
                                         }
                                     }
