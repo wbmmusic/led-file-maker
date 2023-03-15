@@ -11,23 +11,23 @@ const Jimp = require('jimp-native')
 let folderPath = ''
 let files = []
 
-const loadFolder = async(path) => {
+const loadFolder = async (path) => {
     folderPath = path
     const fileNames = readdirSync(path)
 
-    return new Promise(async(resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
         files = []
         let fileParams = []
         let ignored = []
 
         for (let i = 0; i < fileNames.length; i++) {
             const filePath = join(folderPath, fileNames[i])
-                //console.log(filePath)
+            //console.log(filePath)
             try {
                 const info = await sizeOf(filePath)
-                    //console.log(info)
+                //console.log(info)
                 if (!fileParams.find(type => JSON.stringify(type) === JSON.stringify(info))) fileParams.push(info)
-                files.push({...info, name: fileNames[i] })
+                files.push({ ...info, name: fileNames[i] })
             } catch (error) {
                 ignored.push(fileNames[i])
             }
@@ -72,8 +72,8 @@ const createWindow = () => {
     win.on('ready-to-show', () => win.show())
 
     const configIPC = () => {
-        ipcMain.handle('chooseFolder', async(e) => {
-            return new Promise(async(resolve, reject) => {
+        ipcMain.handle('chooseFolder', async (e) => {
+            return new Promise(async (resolve, reject) => {
                 dialog.showOpenDialog(win, { properties: ['openDirectory'] })
                     .then(async res => {
                         if (res.canceled === true) {
@@ -101,16 +101,16 @@ const createWindow = () => {
             return files
         })
 
-        ipcMain.handle('chooseOutput', async() => {
-            return new Promise(async(resolve, reject) => {
+        ipcMain.handle('chooseOutput', async () => {
+            return new Promise(async (resolve, reject) => {
                 dialog.showSaveDialog(
-                        win, {
-                            filters: [{
-                                name: 'WBM Animation',
-                                extensions: ['wbmani']
-                            }]
-                        }
-                    )
+                    win, {
+                    filters: [{
+                        name: 'WBM Animation',
+                        extensions: ['wbmani']
+                    }]
+                }
+                )
                     .then(res => {
                         if (res.canceled === true) {
                             //console.log(res)
@@ -126,27 +126,27 @@ const createWindow = () => {
             })
         })
 
-        ipcMain.handle('saveWbmAni', async(e, path, data) => {
+        ipcMain.handle('saveWbmAni', async (e, path, data) => {
             //console.log(data)
-            return new Promise(async(resolve, reject) => {
+            return new Promise(async (resolve, reject) => {
                 await writeFile(path, data)
                 resolve('saved')
             })
         })
 
-        ipcMain.handle('openAniFile', async() => {
-            return new Promise(async(resolve, reject) => {
+        ipcMain.handle('openAniFile', async () => {
+            return new Promise(async (resolve, reject) => {
                 dialog.showOpenDialog(win, {
-                        filters: [{
-                            name: 'WBM Animation',
-                            extensions: ['wbmani']
-                        }]
-                    })
+                    filters: [{
+                        name: 'WBM Animation',
+                        extensions: ['wbmani']
+                    }]
+                })
                     .then(async res => {
                         if (res.canceled === true) resolve('canceled')
                         else {
                             const data = await readFile(res.filePaths[0])
-                                //console.log(data)
+                            //console.log(data)
                             resolve({
                                 data,
                                 name: parse(res.filePaths[0]).base
@@ -184,7 +184,7 @@ const createWindow = () => {
             return [highByte, lowByte]
         }
 
-        ipcMain.on('export', async(e, data) => {
+        ipcMain.on('export', async (e, data) => {
             let canceled = false
             const outPath = data.path
             const tempPath = join(parse(outPath).dir, 'temp.wbmani')
@@ -200,7 +200,7 @@ const createWindow = () => {
 
             const makeFormatBytes = () => [data.format.charCodeAt(0), data.format.charCodeAt(1), data.format.charCodeAt(2)]
 
-            fileWriter.on('ready', async() => {
+            fileWriter.on('ready', async () => {
                 console.log('File writer ready')
 
                 let headers = [
@@ -253,7 +253,7 @@ const createWindow = () => {
                             // SEND TO FRONTEND HERE
                             win.webContents.send('processedFrame', files[i].name)
                             let pixels = []
-                            image.scan(0, 0, image.bitmap.width, image.bitmap.height, function(x, y, idx) {
+                            image.scan(0, 0, image.bitmap.width, image.bitmap.height, function (x, y, idx) {
                                 // x, y is the position of this pixel on the image
                                 // idx is the position start position of this rgba tuple in the bitmap Buffer
                                 // this is the image
