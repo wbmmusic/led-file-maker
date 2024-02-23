@@ -46,7 +46,7 @@ export default function Generator() {
   };
 
   const handleExport = () => {
-    window.k.ipcRenderer
+    window.k
       .invoke("chooseOutput")
       .then(res => {
         if (res !== "canceled") {
@@ -64,7 +64,7 @@ export default function Generator() {
           color="error"
           size="small"
           onClick={() => {
-            window.k.ipcRenderer
+            window.k
               .invoke("clearImages")
               .then(res => setFiles(res))
               .catch(err => console.log(err));
@@ -256,7 +256,7 @@ export default function Generator() {
         component="label"
         onClick={async () => {
           setLoadingModal(true);
-          window.k.ipcRenderer
+          window.k
             .invoke("chooseFolder")
             .then(res => {
               if (res !== "canceled") setFiles(res);
@@ -303,7 +303,7 @@ export default function Generator() {
           <div style={{ textAlign: "right" }}>
             <Button
               onClick={async () => {
-                await window.k.ipcRenderer.invoke("cancelExport");
+                await window.k.invoke("cancelExport");
                 setExportModal(defaultExportModal);
               }}
             >

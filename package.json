@@ -19,7 +19,7 @@
         "@testing-library/jest-dom": "^6.4.2",
         "@testing-library/react": "^14.2.1",
         "@testing-library/user-event": "^14.5.2",
-        "electron-updater": "^6.1.7",
+        "electron-updater": "^6.1.8",
         "foreman": "^3.0.1",
         "image-size": "^1.1.1",
         "react": "^18.2.0",
@@ -62,8 +62,8 @@
         ]
     },
     "devDependencies": {
-        "electron": "^28.2.3",
-        "electron-builder": "^24.9.1"
+        "electron": "^29.0.0",
+        "electron-builder": "^24.12.0"
     },
     "build": {
         "productName": "LED File Maker",
@@ -71,6 +71,10 @@
         "copyright": "WBM Tek",
         "extends": null,
         "npmRebuild": false,
+        "asarUnpack": [
+            "**/node_modules/sharp/**/*",
+            "**/node_modules/@img/**/*"
+        ],
         "files": [
             "build/**/*",
             "electron/*"
@@ -79,7 +83,8 @@
             "public/locos/*"
         ],
         "win": {
-            "icon": "public/logo512.png"
+            "icon": "public/logo512.png",
+            "certificateSubjectName": "WBM Tek (Mareci, William)"
         }
     },
     "repository": {

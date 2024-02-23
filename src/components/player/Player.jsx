@@ -17,7 +17,7 @@ export default function Player() {
   };
 
   const handleOpenFile = () => {
-    window.k.ipcRenderer
+    window.k
       .invoke("openAniFile")
       .then(res => {
         if (res !== "canceled") {

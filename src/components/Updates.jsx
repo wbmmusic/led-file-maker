@@ -51,7 +51,7 @@ export default function Updates() {
   );
 
   useEffect(() => {
-    window.k.ipcRenderer.send("reactIsReady");
+    window.k.send("reactIsReady");
     window.k.receive("updater", (a, b) => {
       if (a === "checking-for-update") console.log("Checking For Update");
       else if (a === "update-not-available")
