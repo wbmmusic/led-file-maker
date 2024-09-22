@@ -13,9 +13,9 @@
     "dependencies": {
         "@emotion/react": "^11.13.3",
         "@emotion/styled": "^11.13.0",
-        "@mui/icons-material": "^6.1.0",
-        "@mui/lab": "6.0.0-beta.9",
-        "@mui/material": "^6.1.0",
+        "@mui/icons-material": "^6.1.1",
+        "@mui/lab": "6.0.0-beta.10",
+        "@mui/material": "^6.1.1",
         "@testing-library/jest-dom": "^6.5.0",
         "@testing-library/react": "^16.0.1",
         "@testing-library/user-event": "^14.5.2",
@@ -62,7 +62,7 @@
         ]
     },
     "devDependencies": {
-        "electron": "^32.1.0",
+        "electron": "^32.1.2",
         "electron-builder": "^25.0.5"
     },
     "build": {
