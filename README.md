@@ -1,70 +1,67 @@
-# Getting Started with Create React App
+# LED Animation File Generator
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A desktop application for creating and playing LED animation files from image sequences. Converts image folders into optimized binary animation files for embedded LED projects.
 
-## Available Scripts
+## Features
 
-In the project directory, you can run:
+### Generator
+- **Image Sequence Processing**: Select folder of images and convert to LED animation format
+- **Color Format Support**: Multiple RGB color orders (RGB, RBG, BGR, BRG, GRB, GBR)
+- **Real-time Preview**: Live animation preview before export
+- **Optimized Output**: Creates compact binary files for flash memory storage
 
-### `yarn start`
+### Player
+- **Animation Playback**: Load and play generated animation files
+- **30fps Rendering**: Smooth playback with canvas-based display
+- **Format Detection**: Automatically reads file metadata (frames, resolution, color format)
+- **Scaling Display**: Resizable preview window
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+## Supported LED Hardware
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+- LED strips (WS2812, APA102, etc.)
+- LED matrices
+- Discrete RGB LEDs
+- Any project requiring animation data in flash memory
 
-### `yarn test`
+## Installation
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+```bash
+pnpm install
+```
 
-### `yarn build`
+## Development
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+```bash
+pnpm start    # Start React development server
+pnpm dev      # Start with Electron
+pnpm build    # Build for production
+pnpm package  # Create distributable package
+```
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## Usage
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### Creating Animations
+1. Prepare image sequence (numbered files: frame001.png, frame002.png, etc.)
+2. Launch application and go to Generator tab
+3. Click "Select Folder Of Images"
+4. Choose color format to match your LED hardware
+5. Preview animation
+6. Export to binary file
 
-### `yarn eject`
+### Playing Animations
+1. Go to Player tab
+2. Click "Open File" and select generated animation file
+3. Animation plays automatically at 30fps
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+## File Format
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+Generated files use a custom binary format optimized for embedded systems:
+- Header: Frame count, width, height, color format
+- Data: Raw RGB pixel data for each frame
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+## Technical Details
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `yarn build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+- Built with React + Electron
+- Image processing with Sharp library
+- Material-UI interface
+- Cross-platform compatibility
