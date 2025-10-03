@@ -2,7 +2,17 @@
 
 ## Overview
 
-The `.wbmani` format is a custom binary file format designed for storing LED matrix animation sequences. It provides an efficient way to store pre-processed RGB image sequences with configurable pixel ordering to match various LED hardware configurations.
+The `.wbmani` format is a custom binary file format designed for storing LED matrix animation sequences **pre-processed into the exact format that LED strips expect**. This is the core purpose of the format: to eliminate runtime processing on microcontrollers by storing data exactly as it needs to be transmitted to the LEDs.
+
+### Key Design Principle
+
+The format stores pixel data in the **exact color order** (RGB, GRB, BGR, etc.) and **exact pixel sequence** that your specific LED hardware requires. This allows for:
+- **Zero-copy DMA transfers**: Data can be streamed directly from flash memory to LED strips
+- **No runtime color conversion**: Colors are pre-arranged during file creation
+- **No runtime reordering**: Pixels are pre-sequenced to match your LED wiring pattern
+- **Minimal CPU usage**: Microcontroller simply reads and transmits data
+
+This design makes `.wbmani` ideal for resource-constrained embedded systems where every CPU cycle matters.
 
 **Version:** 1.0  
 **Extension:** `.wbmani`  

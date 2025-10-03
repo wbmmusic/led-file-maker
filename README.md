@@ -5,9 +5,13 @@
 ![Electron](https://img.shields.io/badge/Electron-38.2.0-47848f?logo=electron)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
-A desktop application for creating and playing LED animation files from image sequences. Converts image folders into optimized binary animation files for embedded LED projects.
+A desktop application for creating LED animation files **pre-processed for direct DMA transfer to LED strips**. Converts image sequences into optimized binary files where pixel data is stored in the exact color format and order that your LED hardware expects - eliminating runtime processing on microcontrollers.
 
 > **✨ Now fully migrated to TypeScript!** Complete with type safety, comprehensive documentation, and improved code quality.
+
+## Why This Exists
+
+LED strips (WS2812, APA102, etc.) have different color orders (RGB vs GRB vs BGR) and LED matrices have different wiring patterns (horizontal, vertical, snake, etc.). This tool pre-processes your animations so the data can be streamed directly from flash memory to LEDs via DMA with **zero runtime color conversion or pixel reordering**. Your microcontroller just reads and transmits - no CPU cycles wasted.
 
 ## Table of Contents
 - [Features](#features)
@@ -24,9 +28,10 @@ A desktop application for creating and playing LED animation files from image se
 
 ### Generator
 - **Image Sequence Processing**: Select folder of images and convert to LED animation format
-- **Color Format Support**: Multiple RGB color orders (RGB, RBG, BGR, BRG, GRB, GBR)
+- **Hardware-Specific Color Format**: Pre-process into exact color order your LED strip expects (RGB, RBG, BGR, BRG, GRB, GBR)
+- **Hardware-Specific Pixel Ordering**: Pre-arrange pixels to match your LED matrix wiring (horizontal, vertical, snake patterns, any start corner)
 - **Real-time Preview**: Live animation preview before export
-- **Optimized Output**: Creates compact binary files for flash memory storage
+- **DMA-Ready Output**: Creates binary files structured for direct flash-to-LED streaming via DMA
 
 ### Player
 - **Animation Playback**: Load and play generated animation files
@@ -72,9 +77,13 @@ pnpm dev
 
 ## File Format
 
-Generated files use a custom binary format optimized for embedded systems:
-- Header: Frame count, width, height, color format
-- Data: Raw RGB pixel data for each frame
+Generated files use the `.wbmani` binary format optimized for zero-copy DMA streaming:
+- **Header (9 bytes)**: Frame count, width, height, color format
+- **Frame Data**: Pixels pre-ordered and pre-formatted exactly as your LED hardware expects
+- **Sequential Layout**: Each frame stored contiguously for efficient flash reads
+- **No Processing Required**: Data can be transmitted directly to LEDs without modification
+
+See [WBMANI_FORMAT.md](WBMANI_FORMAT.md) for complete specification including C implementation examples.
 
 ## Technical Stack
 
