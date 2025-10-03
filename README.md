@@ -1,6 +1,24 @@
 # LED Animation File Generator
 
+![TypeScript](https://img.shields.io/badge/TypeScript-5.6.0-blue?logo=typescript)
+![React](https://img.shields.io/badge/React-19.1.1-61dafb?logo=react)
+![Electron](https://img.shields.io/badge/Electron-38.2.0-47848f?logo=electron)
+![License](https://img.shields.io/badge/license-MIT-green)
+
 A desktop application for creating and playing LED animation files from image sequences. Converts image folders into optimized binary animation files for embedded LED projects.
+
+> **✨ Now fully migrated to TypeScript!** Complete with type safety, comprehensive documentation, and improved code quality.
+
+## Table of Contents
+- [Features](#features)
+- [Technical Stack](#technical-stack)
+- [Quick Start](#quick-start)
+- [Usage](#usage)
+- [File Format](#file-format)
+- [Development](#development)
+- [TypeScript Migration](#typescript-migration)
+- [Contributing](#contributing)
+- [License](#license)
 
 ## Features
 
@@ -23,19 +41,18 @@ A desktop application for creating and playing LED animation files from image se
 - Discrete RGB LEDs
 - Any project requiring animation data in flash memory
 
-## Installation
+## Quick Start
 
 ```bash
+# Clone the repository
+git clone https://github.com/wbmmusic/led-file-maker.git
+cd led-file-maker
+
+# Install dependencies
 pnpm install
-```
 
-## Development
-
-```bash
-pnpm start    # Start React development server
-pnpm dev      # Start with Electron
-pnpm build    # Build for production
-pnpm package  # Create distributable package
+# Run in development mode
+pnpm dev
 ```
 
 ## Usage
@@ -59,9 +76,166 @@ Generated files use a custom binary format optimized for embedded systems:
 - Header: Frame count, width, height, color format
 - Data: Raw RGB pixel data for each frame
 
-## Technical Details
+## Technical Stack
 
-- Built with React + Electron
-- Image processing with Sharp library
-- Material-UI interface
-- Cross-platform compatibility
+### Core Technologies
+- **React 19.1.1** - Modern React with new JSX transform
+- **TypeScript 5.6.0** - Full type safety with strict mode
+- **Electron 38.2.0** - Desktop application framework
+- **Material-UI v7** - Modern React component library
+
+### Image Processing
+- **Sharp 0.34.4** - High-performance image processing
+- **image-size 2.0.2** - Fast image dimension detection
+
+### Build Tools
+- **React Scripts 5.0.1** - React build configuration
+- **TypeScript Compiler** - Dual compilation (React + Electron)
+- **electron-builder** - Application packaging
+
+### Code Quality
+- **Strict TypeScript** - Complete type coverage
+- **JSDoc Comments** - Comprehensive function documentation
+- **Inline Comments** - Detailed algorithm explanations
+
+## Project Structure
+
+```
+led-file-maker/
+├── public/
+│   ├── app.ts          # Electron main process (TypeScript)
+│   └── preload.ts      # Electron preload script (TypeScript)
+├── src/
+│   ├── components/     # React components (TypeScript)
+│   │   ├── generator/  # Animation creation UI
+│   │   └── player/     # Animation playback UI
+│   ├── types/          # TypeScript type definitions
+│   │   ├── components.ts
+│   │   ├── electron.d.ts
+│   │   ├── fileFormat.ts
+│   │   ├── ipc.ts
+│   │   └── jsx.d.ts
+│   ├── App.tsx         # Main application component
+│   └── index.tsx       # React entry point
+├── build/              # Compiled output (gitignored)
+├── WBMANI_FORMAT.md   # File format documentation
+└── TYPESCRIPT_CONVERSION.md  # Migration guide
+```
+
+## Development
+
+### Prerequisites
+- Node.js 18+ 
+- pnpm (recommended) or npm
+
+### Setup
+```bash
+# Install dependencies
+pnpm install
+
+# Development mode (hot reload)
+pnpm dev
+
+# Build TypeScript
+pnpm build:electron
+
+# Build React app
+pnpm build
+```
+
+### Available Scripts
+```bash
+pnpm start          # Start React dev server only
+pnpm dev            # Start React + Electron in development mode
+pnpm build          # Full production build (Electron + React)
+pnpm build:electron # Compile TypeScript (Electron files only)
+pnpm package        # Create distributable package
+pnpm deploy         # Build and publish update
+```
+
+## TypeScript Migration
+
+This project was fully migrated from JavaScript to TypeScript in October 2025. Key improvements:
+
+### Type Safety
+- ✅ Complete type definitions for all components
+- ✅ Strict null checks enabled
+- ✅ No implicit `any` types
+- ✅ Full IPC type safety between main and renderer
+
+### Documentation
+- ✅ JSDoc comments on all functions
+- ✅ Inline comments for complex algorithms
+- ✅ Protocol specification document ([WBMANI_FORMAT.md](WBMANI_FORMAT.md))
+- ✅ Migration guide ([TYPESCRIPT_CONVERSION.md](TYPESCRIPT_CONVERSION.md))
+
+### Bug Fixes During Migration
+- Fixed custom protocol handler (atom://) for local image loading
+- Fixed image-size library v2.x API usage
+- Fixed React 19 JSX namespace compatibility
+- Fixed duplicate file parameter detection
+
+## Cross-Platform Support
+
+The application runs on:
+- ✅ Windows 10/11
+- ✅ macOS 10.13+
+- ✅ Linux (Ubuntu, Fedora, etc.)
+
+## Troubleshooting
+
+### Images Not Loading
+If images show as broken after selecting a folder:
+1. Ensure you're using the latest version
+2. Check that all images in the folder have the same dimensions and format
+3. Restart the application if needed
+
+### Build Errors
+```bash
+# Clean build and reinstall
+rm -rf node_modules build
+pnpm install
+pnpm build
+```
+
+### Protocol Handler Issues
+The app uses a custom `atom://` protocol for loading images. This is properly configured in the latest version with the `standard: true` privilege.
+
+## Contributing
+
+Contributions are welcome! Please follow these steps:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+### Development Guidelines
+- Follow TypeScript strict mode conventions
+- Add JSDoc comments to all public functions
+- Include inline comments for complex logic
+- Update type definitions as needed
+- Test thoroughly before submitting PR
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Author
+
+**Marece Williams**
+- Website: [marecewilliams.com](https://www.marecewilliams.com)
+- Email: wbmmusic@gmail.com
+- GitHub: [@wbmmusic](https://github.com/wbmmusic)
+
+## Acknowledgments
+
+- Built with [Electron](https://www.electronjs.org/)
+- UI powered by [Material-UI](https://mui.com/)
+- Image processing by [Sharp](https://sharp.pixelplumbing.com/)
+- TypeScript migration completed October 2025
+
+---
+
+**⭐ Star this repo if you find it useful!**
