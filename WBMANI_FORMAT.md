@@ -148,27 +148,42 @@ Common ordering patterns:
    ```
 
 3. **Read Frame Data**
-   ```python
-   # Read all frames
-   frame_data = f.read(frame_count * bytes_per_frame)
+   ```c
+   // Calculate total data size
+   size_t bytes_per_frame = width * height * 3;
+   size_t total_data_size = frame_count * bytes_per_frame;
    
-   # Extract individual frames
-   frames = []
-   for i in range(frame_count):
-       start = i * bytes_per_frame
-       end = start + bytes_per_frame
-       frame = frame_data[start:end]
-       frames.append(frame)
+   // Allocate memory for all frame data
+   uint8_t* frame_data = (uint8_t*)malloc(total_data_size);
+   fread(frame_data, 1, total_data_size, fp);
+   
+   // Extract individual frames
+   uint8_t** frames = (uint8_t**)malloc(frame_count * sizeof(uint8_t*));
+   for (int i = 0; i < frame_count; i++) {
+       size_t offset = i * bytes_per_frame;
+       frames[i] = &frame_data[offset];
+   }
    ```
 
 4. **Decode Pixels**
-   ```python
-   def decode_pixel(pixel_bytes, format):
-       if format == 'rgb':
-           return (pixel_bytes[0], pixel_bytes[1], pixel_bytes[2])
-       elif format == 'bgr':
-           return (pixel_bytes[2], pixel_bytes[1], pixel_bytes[0])
-       # ... handle other formats
+   ```c
+   void decode_pixel(uint8_t* pixel_bytes, char* format, 
+                     uint8_t* r, uint8_t* g, uint8_t* b) {
+       if (strcmp(format, "rgb") == 0) {
+           *r = pixel_bytes[0];
+           *g = pixel_bytes[1];
+           *b = pixel_bytes[2];
+       } else if (strcmp(format, "bgr") == 0) {
+           *b = pixel_bytes[0];
+           *g = pixel_bytes[1];
+           *r = pixel_bytes[2];
+       } else if (strcmp(format, "grb") == 0) {
+           *g = pixel_bytes[0];
+           *r = pixel_bytes[1];
+           *b = pixel_bytes[2];
+       }
+       // ... handle other formats
+   }
    ```
 
 ---
@@ -178,109 +193,183 @@ Common ordering patterns:
 ### Step-by-Step Process
 
 1. **Prepare Header**
-   ```python
-   def write_uint16_be(value):
-       high_byte = (value >> 8) & 0xFF
-       low_byte = value & 0xFF
-       return bytes([high_byte, low_byte])
+   ```c
+   void write_uint16_be(uint8_t* buffer, uint16_t value) {
+       buffer[0] = (value >> 8) & 0xFF;  // High byte
+       buffer[1] = value & 0xFF;          // Low byte
+   }
    
-   # Create header
-   header = bytearray()
-   header.extend(write_uint16_be(frame_count))
-   header.extend(write_uint16_be(width))
-   header.extend(write_uint16_be(height))
-   header.extend(color_format.encode('ascii'))  # e.g., 'rgb'
+   // Create header (9 bytes)
+   uint8_t header[9];
+   write_uint16_be(&header[0], frame_count);
+   write_uint16_be(&header[2], width);
+   write_uint16_be(&header[4], height);
+   memcpy(&header[6], color_format, 3);  // e.g., "rgb"
    ```
 
 2. **Process Image Frames**
-   ```python
-   # For each image in sequence
-   for image in images:
-       # Extract pixels in desired order
-       pixels = extract_pixels_in_order(image, start_corner, pixel_order)
+   ```c
+   // Allocate buffer for all frame data
+   size_t bytes_per_frame = width * height * 3;
+   size_t total_size = frame_count * bytes_per_frame;
+   uint8_t* frame_data = (uint8_t*)malloc(total_size);
+   size_t offset = 0;
+   
+   // For each image in sequence
+   for (int frame = 0; frame < frame_count; frame++) {
+       // Extract pixels in desired order
+       uint8_t* pixels = extract_pixels_in_order(images[frame], 
+                                                   start_corner, 
+                                                   pixel_order);
        
-       # Convert to target color format
-       for pixel in pixels:
-           r, g, b = pixel
-           if color_format == 'rgb':
-               frame_data.extend([r, g, b])
-           elif color_format == 'bgr':
-               frame_data.extend([b, g, r])
-           # ... handle other formats
+       // Convert to target color format
+       for (int i = 0; i < width * height; i++) {
+           uint8_t r = pixels[i * 3 + 0];
+           uint8_t g = pixels[i * 3 + 1];
+           uint8_t b = pixels[i * 3 + 2];
+           
+           if (strcmp(color_format, "rgb") == 0) {
+               frame_data[offset++] = r;
+               frame_data[offset++] = g;
+               frame_data[offset++] = b;
+           } else if (strcmp(color_format, "bgr") == 0) {
+               frame_data[offset++] = b;
+               frame_data[offset++] = g;
+               frame_data[offset++] = r;
+           } else if (strcmp(color_format, "grb") == 0) {
+               frame_data[offset++] = g;
+               frame_data[offset++] = r;
+               frame_data[offset++] = b;
+           }
+           // ... handle other formats
+       }
+   }
    ```
 
 3. **Write File**
-   ```python
-   with open('output.wbmani', 'wb') as f:
-       f.write(header)
-       f.write(frame_data)
+   ```c
+   FILE* fp = fopen("output.wbmani", "wb");
+   if (fp) {
+       fwrite(header, 1, 9, fp);
+       fwrite(frame_data, 1, total_size, fp);
+       fclose(fp);
+   }
+   
+   // Clean up
+   free(frame_data);
    ```
 
 ---
 
 ## Example Implementation
 
-### Python Example: Reading and Displaying
+### C Example: Reading and Parsing
 
-```python
-import struct
-from PIL import Image
+```c
+#include <stdio.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
 
-def read_wbmani(filename):
-    """Read a .wbmani file and return header info and frames."""
-    with open(filename, 'rb') as f:
-        # Read header
-        header = f.read(9)
-        frame_count = struct.unpack('>H', header[0:2])[0]
-        width = struct.unpack('>H', header[2:4])[0]
-        height = struct.unpack('>H', header[4:6])[0]
-        color_format = header[6:9].decode('ascii')
-        
-        # Read all frame data
-        bytes_per_frame = width * height * 3
-        frames = []
-        
-        for _ in range(frame_count):
-            frame_bytes = f.read(bytes_per_frame)
-            frames.append(frame_bytes)
-        
-        return {
-            'frame_count': frame_count,
-            'width': width,
-            'height': height,
-            'format': color_format,
-            'frames': frames
-        }
+typedef struct {
+    uint16_t frame_count;
+    uint16_t width;
+    uint16_t height;
+    char format[4];  // 3 chars + null terminator
+    uint8_t** frames;  // Array of pointers to frame data
+} WbmaniFile;
 
-def frame_to_image(frame_bytes, width, height, color_format):
-    """Convert frame bytes to PIL Image."""
-    pixels = []
-    for i in range(0, len(frame_bytes), 3):
-        if color_format == 'rgb':
-            pixel = (frame_bytes[i], frame_bytes[i+1], frame_bytes[i+2])
-        elif color_format == 'bgr':
-            pixel = (frame_bytes[i+2], frame_bytes[i+1], frame_bytes[i])
-        # ... handle other formats
-        pixels.append(pixel)
+// Helper function to read big-endian uint16
+uint16_t read_uint16_be(uint8_t* buffer) {
+    return (buffer[0] << 8) | buffer[1];
+}
+
+WbmaniFile* read_wbmani(const char* filename) {
+    FILE* fp = fopen(filename, "rb");
+    if (!fp) {
+        return NULL;
+    }
     
-    img = Image.new('RGB', (width, height))
-    img.putdata(pixels)
-    return img
+    WbmaniFile* wbm = (WbmaniFile*)malloc(sizeof(WbmaniFile));
+    
+    // Read header (9 bytes)
+    uint8_t header[9];
+    fread(header, 1, 9, fp);
+    
+    // Parse header
+    wbm->frame_count = read_uint16_be(&header[0]);
+    wbm->width = read_uint16_be(&header[2]);
+    wbm->height = read_uint16_be(&header[4]);
+    memcpy(wbm->format, &header[6], 3);
+    wbm->format[3] = '\0';  // Null terminate
+    
+    // Calculate frame size
+    size_t bytes_per_frame = wbm->width * wbm->height * 3;
+    
+    // Allocate frame array
+    wbm->frames = (uint8_t**)malloc(wbm->frame_count * sizeof(uint8_t*));
+    
+    // Read all frames
+    for (int i = 0; i < wbm->frame_count; i++) {
+        wbm->frames[i] = (uint8_t*)malloc(bytes_per_frame);
+        fread(wbm->frames[i], 1, bytes_per_frame, fp);
+    }
+    
+    fclose(fp);
+    return wbm;
+}
 
-# Usage
-animation = read_wbmani('animation.wbmani')
-print(f"Frames: {animation['frame_count']}")
-print(f"Size: {animation['width']}x{animation['height']}")
-print(f"Format: {animation['format']}")
+void free_wbmani(WbmaniFile* wbm) {
+    if (wbm) {
+        for (int i = 0; i < wbm->frame_count; i++) {
+            free(wbm->frames[i]);
+        }
+        free(wbm->frames);
+        free(wbm);
+    }
+}
 
-# Display first frame
-first_frame = frame_to_image(
-    animation['frames'][0],
-    animation['width'],
-    animation['height'],
-    animation['format']
-)
-first_frame.show()
+// Convert frame pixel to RGB
+void get_pixel_rgb(uint8_t* frame, int pixel_index, char* format,
+                   uint8_t* r, uint8_t* g, uint8_t* b) {
+    uint8_t* pixel = &frame[pixel_index * 3];
+    
+    if (strcmp(format, "rgb") == 0) {
+        *r = pixel[0]; *g = pixel[1]; *b = pixel[2];
+    } else if (strcmp(format, "bgr") == 0) {
+        *b = pixel[0]; *g = pixel[1]; *r = pixel[2];
+    } else if (strcmp(format, "grb") == 0) {
+        *g = pixel[0]; *r = pixel[1]; *b = pixel[2];
+    } else if (strcmp(format, "rbg") == 0) {
+        *r = pixel[0]; *b = pixel[1]; *g = pixel[2];
+    } else if (strcmp(format, "brg") == 0) {
+        *b = pixel[0]; *r = pixel[1]; *g = pixel[2];
+    } else if (strcmp(format, "gbr") == 0) {
+        *g = pixel[0]; *b = pixel[1]; *r = pixel[2];
+    }
+}
+
+// Usage example
+int main() {
+    WbmaniFile* animation = read_wbmani("animation.wbmani");
+    if (!animation) {
+        printf("Failed to open file\n");
+        return 1;
+    }
+    
+    printf("Frames: %d\n", animation->frame_count);
+    printf("Size: %dx%d\n", animation->width, animation->height);
+    printf("Format: %s\n", animation->format);
+    
+    // Access first pixel of first frame
+    uint8_t r, g, b;
+    get_pixel_rgb(animation->frames[0], 0, animation->format, &r, &g, &b);
+    printf("First pixel: R=%d G=%d B=%d\n", r, g, b);
+    
+    // Clean up
+    free_wbmani(animation);
+    return 0;
+}
 ```
 
 ### JavaScript/Node.js Example
