@@ -551,3 +551,46 @@ This format specification is provided as-is for use with LED File Maker and comp
 | TM1803       | RGB            |
 
 **Note:** Always check your specific hardware datasheet as formats can vary by manufacturer and model.
+
+---
+
+## Typical Usage Pattern: Embedded Systems with DMA
+
+The `.wbmani` format is designed for efficient playback on embedded systems (microcontrollers, Arduino, ESP32, etc.). A common implementation pattern uses **Direct Memory Access (DMA)** for high-performance, low-CPU-overhead animation playback:
+
+### Frame-by-Frame Streaming from Flash
+
+Rather than loading the entire animation into RAM, you can stream frames directly from flash memory to LED strips:
+
+1. **Store .wbmani file in flash memory** (SPI flash, SD card, or internal flash)
+2. **Read header once** at initialization to get frame count and dimensions
+3. **Calculate frame size** in bytes: `frame_size = width × height × 3`
+4. **For each frame:**
+   - Use **DMA to read** frame data from flash to a buffer
+   - Use **DMA to write** buffer data to LED strip controller (SPI/I2S peripheral)
+   - Minimal CPU involvement during transfer
+
+### Example Workflow
+
+```
+Initialize:
+  ├─ Read 9-byte header
+  ├─ Parse dimensions and format
+  └─ Calculate frame_offset = 9 + (frame_index × frame_size)
+
+Playback Loop:
+  ├─ DMA: Flash → RAM Buffer (read frame at calculated offset)
+  ├─ DMA: RAM Buffer → LED Strip (SPI/I2S transfer)
+  ├─ Increment frame_index (wrap around at frame_count)
+  └─ Repeat at desired frame rate
+```
+
+### Benefits of This Approach
+
+- **Low Memory Footprint:** Only one or two frame buffers needed (double buffering)
+- **High Performance:** DMA transfers happen in background while CPU handles timing/logic
+- **Smooth Playback:** No frame stuttering from slow file I/O
+- **Large Animations:** Support animations larger than available RAM
+
+This design makes `.wbmani` ideal for LED matrix projects where animation data is pre-generated and stored for efficient real-time playback.
+
