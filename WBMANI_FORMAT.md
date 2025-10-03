@@ -121,17 +121,44 @@ If the format is `bgr`:
 
 ### Pixel Ordering
 
-Pixels within each frame are ordered to match LED matrix hardware wiring patterns. The ordering depends on:
+Pixels within each frame are ordered to match **addressable LED strip** wiring patterns. Since data flows sequentially from one LED to the next in a chain, the file stores pixels in the exact order they appear in your physical LED chain.
 
-1. **Start Corner:** Where the LED data line begins (topLeft, topRight, bottomLeft, bottomRight)
-2. **Pixel Order:** How LEDs are connected (horizontal, vertical, or alternating/snake patterns)
+**Why This Matters:**  
+When building LED matrices from strips, you physically chain strips together. The data signal enters at one point and flows through every LED in sequence. The ordering parameters tell the generator how your strips are chained.
 
-Common ordering patterns:
+#### Ordering Parameters
 
-- **Horizontal:** Left-to-right, row by row
-- **Vertical:** Top-to-bottom, column by column
-- **Horizontal Alternate (Snake):** Alternating direction per row (→ ← → ← ...)
-- **Vertical Alternate (Snake):** Alternating direction per column (↓ ↑ ↓ ↑ ...)
+1. **Start Corner:** Where the LED data input begins (topLeft, topRight, bottomLeft, bottomRight)
+2. **Pixel Order Pattern:** How your LED strips are physically arranged
+
+#### Common Wiring Patterns
+
+- **Horizontal:** Data flows left-to-right on each row, starting new rows from the left edge
+  ```
+  Start → → → →
+          → → → →
+          → → → → End
+  ```
+
+- **Horizontal Snake (Most Common for Matrices):** Data flows right on row 1, left on row 2, alternating
+  ```
+  Start → → → →
+                ↓
+          ← ← ← ←
+          ↓
+          → → → → End
+  ```
+
+- **Vertical:** Data flows top-to-bottom on each column, starting new columns from the top
+- **Vertical Snake:** Data flows down column 1, up column 2, alternating
+
+**Example:** A 16×16 matrix made from a 256-LED strip in horizontal snake pattern starting at top-left would have:
+- Pixel 0 (file) = LED 0 (top-left, physical)
+- Pixel 15 (file) = LED 15 (top-right, end of row 1)
+- Pixel 16 (file) = LED 16 (top-right of row 2, data flows left)
+- Pixel 31 (file) = LED 31 (top-left of row 2)
+
+The generator handles this reordering automatically based on your image and wiring configuration.
 
 ---
 
@@ -560,7 +587,41 @@ This format specification is provided as-is for use with LED File Maker and comp
 | WS2801       | RGB            |
 | TM1803       | RGB            |
 
-**Note:** Always check your specific hardware datasheet as formats can vary by manufacturer and model.
+**Note:** Always verify color format with your LED strip's datasheet. If your colors appear incorrect (e.g., red displays as green), you likely have the wrong format selected.
+
+---
+
+## Practical Considerations
+
+### Typical Hardware Specifications
+
+Based on common implementations:
+
+- **Microcontrollers:** Arduino (SAMD11, SAMD21, SAMD51), ESP32, STM32, Teensy
+- **Storage:** SPI Flash chips (most common for embedded projects)
+- **Matrix Sizes:** Up to 100×100 pixels typical (30KB per frame)
+- **Animation Length:** Varies by flash capacity (e.g., 16MB flash = ~500 frames at 32×32)
+
+### Memory Calculations
+
+Calculate storage requirements before creating animations:
+
+```
+Bytes per frame = Width × Height × 3
+Total file size = 9 (header) + (Frame_count × Bytes_per_frame)
+
+Example - 32×32 matrix, 100 frames:
+  = 9 + (100 × 32 × 32 × 3)
+  = 9 + 307,200
+  = ~300 KB
+```
+
+### Frame Rate Considerations
+
+- Files don't encode frame rate - playback speed is controlled by your embedded code
+- 30fps is common but easily adjustable
+- LED strip refresh rates may limit maximum achievable FPS
+- Consider your microcontroller's processing capabilities
 
 ---
 
@@ -572,28 +633,36 @@ The `.wbmani` format is designed for efficient playback on embedded systems (mic
 
 Rather than loading the entire animation into RAM, you can stream frames directly from flash memory to LED strips:
 
-1. **Store .wbmani file in flash memory** (SPI flash, SD card, or internal flash)
+1. **Store .wbmani file in flash memory** (typically SPI Flash chips)
 2. **Read header once** at initialization to get frame count and dimensions
 3. **Calculate frame size** in bytes: `frame_size = width × height × 3`
-4. **For each frame:**
-   - Use **DMA to read** frame data from flash to a buffer
-   - Use **DMA to write** buffer data to LED strip controller (SPI/I2S peripheral)
+4. **Allocate two frame buffers** (double buffering for smooth playback)
+5. **For each frame:**
+   - Use **DMA to read** frame data from flash to Buffer A
+   - Use **DMA to write** Buffer B to LED strip controller (SPI/I2S peripheral)
+   - Swap buffers when both operations complete
    - Minimal CPU involvement during transfer
 
-### Example Workflow
+### Example Workflow with Double Buffering
 
 ```
 Initialize:
-  ├─ Read 9-byte header
+  ├─ Read 9-byte header from SPI flash
   ├─ Parse dimensions and format
-  └─ Calculate frame_offset = 9 + (frame_index × frame_size)
+  ├─ Calculate frame_size = width × height × 3
+  ├─ Allocate Buffer A and Buffer B (each frame_size bytes)
+  └─ Pre-load first frame into Buffer A
 
 Playback Loop:
-  ├─ DMA: Flash → RAM Buffer (read frame at calculated offset)
-  ├─ DMA: RAM Buffer → LED Strip (SPI/I2S transfer)
+  ├─ Start DMA: Buffer A → LED Strip (SPI/I2S controller)
+  ├─ Start DMA: Flash → Buffer B (read next frame)
+  ├─ Wait for both DMA operations to complete
+  ├─ Swap: Buffer A ↔ Buffer B
   ├─ Increment frame_index (wrap around at frame_count)
-  └─ Repeat at desired frame rate
+  └─ Repeat at desired frame rate (e.g., 30fps)
 ```
+
+**Double Buffering Advantage:** While the current frame transmits to LEDs, the next frame loads from flash. This eliminates wait time and ensures smooth, stutter-free playback.
 
 ### Benefits of This Approach
 

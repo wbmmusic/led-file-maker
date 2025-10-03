@@ -210,6 +210,56 @@ pnpm build
 ### Protocol Handler Issues
 The app uses a custom `atom://` protocol for loading images. This is properly configured in the latest version with the `standard: true` privilege.
 
+## Practical Usage Guide
+
+### Typical Hardware Setup
+
+**Common Microcontrollers:**
+- Arduino (SAMD11, SAMD21, SAMD51)
+- ESP32/ESP8266
+- STM32
+- Teensy
+
+**Storage:** SPI Flash chips (most common for embedded projects)
+
+**Matrix Sizes:** Typically 100×100 pixels or smaller for practical memory constraints
+
+### Understanding Pixel Ordering
+
+Since this tool targets **addressable LED strips** (where data flows from one LED to the next), the physical wiring pattern determines how pixels should be ordered in your animation file.
+
+**Why does this matter?**  
+When you chain LED strips to form a matrix, the data signal flows in a continuous path. For example:
+- **Horizontal Snake:** Data enters top-left, goes right across row 1, then continues from the right end into row 2 going left, then row 3 going right, etc.
+- **Vertical Snake:** Data enters top-left, goes down column 1, then up column 2, down column 3, etc.
+- **Start Corner:** Your data input can begin at any corner (top-left, top-right, bottom-left, bottom-right)
+
+This tool pre-arranges your image pixels to match your physical LED chain order, so pixel index 0 in the file corresponds to the first LED in your chain, pixel 1 to the second LED, etc.
+
+### Determining Your LED Color Format
+
+Check your LED strip's **datasheet** to find the color order:
+- WS2812B → GRB
+- WS2811 → RGB  
+- APA102 → BGR
+- SK6812 → GRB
+
+**Troubleshooting:** If your colors look wrong (e.g., red appears as green), you likely have the wrong color format selected. Try the other formats until colors display correctly.
+
+### Playback Frame Rate
+
+The player runs at **30fps by default**, but this is easily adjustable in your embedded code. Your microcontroller can play animations at any frame rate depending on your timing requirements and LED refresh constraints.
+
+### Double Buffering Recommendation
+
+For smooth playback, use **double buffering**:
+1. Buffer A holds the current frame being transmitted via DMA to LEDs
+2. Buffer B is being filled via DMA read from flash with the next frame
+3. Swap buffers when current frame transmission completes
+4. Repeat
+
+This ensures continuous playback without frame drops or stuttering.
+
 ## Contributing
 
 Contributions are welcome! Please follow these steps:
