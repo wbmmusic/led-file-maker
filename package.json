@@ -2,7 +2,7 @@
     "name": "led-file-maker",
     "version": "0.0.31",
     "private": true,
-    "main": "public/app.js",
+    "main": "build/public/app.js",
     "homepage": "./",
     "description": "App for generating raw video files from image sequences",
     "author": {
@@ -16,24 +16,21 @@
         "@mui/icons-material": "^7.3.2",
         "@mui/lab": "7.0.0-beta.17",
         "@mui/material": "^7.3.2",
-        "@testing-library/jest-dom": "^6.9.0",
-        "@testing-library/react": "^16.3.0",
-        "@testing-library/user-event": "^14.6.1",
         "electron-updater": "^6.6.2",
         "foreman": "^3.0.1",
         "image-size": "^2.0.2",
         "react": "^19.1.1",
         "react-dom": "^19.1.1",
         "react-scripts": "5.0.1",
-        "sharp": "^0.34.4",
-        "web-vitals": "^5.1.0"
+        "sharp": "^0.34.4"
     },
     "scripts": {
         "start": "react-scripts start",
-        "build": "react-scripts build",
+        "build": "npm run build:electron && react-scripts build",
+        "build:electron": "tsc -p tsconfig.electron.json",
         "test": "react-scripts test",
         "eject": "react-scripts eject",
-        "electron": "electron .",
+        "electron": "npm run build:electron && electron .",
         "postinstall": "electron-builder install-app-deps",
         "dev": "nf start",
         "refresh": "pnpm upgrade --latest",
@@ -62,8 +59,13 @@
         ]
     },
     "devDependencies": {
+        "@types/node": "^22.5.0",
+        "@types/react": "^19.0.0",
+        "@types/react-dom": "^19.0.0",
+        "@types/sharp": "^0.32.0",
         "electron": "^38.2.0",
-        "electron-builder": "^26.0.12"
+        "electron-builder": "^26.0.12",
+        "typescript": "^5.6.0"
     },
     "build": {
         "productName": "LED File Maker",
