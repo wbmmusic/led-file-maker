@@ -1,96 +1,96 @@
 {
-    "name": "led-file-maker",
-    "version": "0.0.31",
-    "private": true,
-    "main": "build/public/app.js",
-    "homepage": "./",
-    "description": "App for generating raw video files from image sequences",
-    "author": {
-        "name": "Marece Williams",
-        "email": "wbmmusic@gmail.com",
-        "url": "https://www.marecewilliams.com"
-    },
-    "dependencies": {
-        "@emotion/react": "^11.14.0",
-        "@emotion/styled": "^11.14.1",
-        "@mui/icons-material": "^7.3.2",
-        "@mui/lab": "7.0.1-beta.18",
-        "@mui/material": "^7.3.2",
-        "electron-updater": "^6.6.2",
-        "foreman": "^3.0.1",
-        "image-size": "^2.0.2",
-        "react": "^19.1.1",
-        "react-dom": "^19.1.1",
-        "react-scripts": "5.0.1",
-        "sharp": "^0.34.4"
-    },
-    "scripts": {
-        "start": "react-scripts start",
-        "build": "npm run build:electron && react-scripts build",
-        "build:electron": "tsc -p tsconfig.electron.json",
-        "test": "react-scripts test",
-        "eject": "react-scripts eject",
-        "electron": "npm run build:electron && electron .",
-        "postinstall": "electron-builder install-app-deps",
-        "dev": "nf start",
-        "refresh": "pnpm upgrade --latest",
-        "package": "electron-builder build -c.extraMetadata.main=build/app.js --publish never",
-        "deploy": "electron-builder build -c.extraMetadata.main=build/app.js --publish always",
-        "backup": "git add . && git commit -m %NPM_PACKAGE_VERSION% && git push origin main",
-        "try": "pnpm build && pnpm package ",
-        "upload": "pnpm build && pnpm backup && pnpm deploy"
-    },
-    "eslintConfig": {
-        "extends": [
-            "react-app",
-            "react-app/jest"
-        ]
-    },
-    "browserslist": {
-        "production": [
-            ">0.2%",
-            "not dead",
-            "not op_mini all"
-        ],
-        "development": [
-            "last 1 chrome version",
-            "last 1 firefox version",
-            "last 1 safari version"
-        ]
-    },
-    "devDependencies": {
-        "@types/node": "^24.7.0",
-        "@types/react": "^19.2.2",
-        "@types/react-dom": "^19.2.1",
-        "electron": "^38.2.2",
-        "electron-builder": "^26.0.12",
-        "typescript": "^5.6.0"
-    },
-    "build": {
-        "productName": "LED File Maker",
-        "appId": "com.wbm.led-file-maker",
-        "copyright": "WBM Tek",
-        "extends": null,
-        "npmRebuild": false,
-        "asarUnpack": [
-            "**/node_modules/sharp/**/*",
-            "**/node_modules/@img/**/*"
-        ],
-        "files": [
-            "build/**/*",
-            "electron/*"
-        ],
-        "extraResources": [
-            "public/locos/*"
-        ],
-        "win": {
-            "icon": "public/logo512.png",
-            "certificateSubjectName": "WBM Tek (Mareci, William)"
-        }
-    },
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/wbmmusic/led-file-maker.git"
-    },
-    "packageManager": "pnpm@9.2.0+sha512.98a80fd11c2e7096747762304106432b3ddc67dcf54b5a8c01c93f68a2cd5e05e6821849522a06fb76284d41a2660d5e334f2ee3bbf29183bf2e739b1dafa771"
+  "name": "led-file-maker",
+  "version": "0.0.31",
+  "private": true,
+  "main": "build/public/app.js",
+  "homepage": "./",
+  "description": "App for generating raw video files from image sequences",
+  "author": {
+    "name": "Marece Williams",
+    "email": "wbmmusic@gmail.com",
+    "url": "https://www.marecewilliams.com"
+  },
+  "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@mui/icons-material": "^7.3.2",
+    "@mui/lab": "7.0.1-beta.18",
+    "@mui/material": "^7.3.2",
+    "electron-updater": "^6.6.2",
+    "foreman": "^3.0.1",
+    "image-size": "^2.0.2",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "react-scripts": "5.0.1",
+    "sharp": "^0.34.4"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "npm run build:electron && react-scripts build",
+    "build:electron": "tsc -p tsconfig.electron.json",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject",
+    "electron": "npm run build:electron && electron .",
+    "postinstall": "electron-builder install-app-deps",
+    "dev": "nf start",
+    "refresh": "pnpm upgrade --latest",
+    "package": "electron-builder build -c.extraMetadata.main=build/app.js --publish never",
+    "deploy": "electron-builder build -c.extraMetadata.main=build/app.js --publish always",
+    "backup": "git add . && git commit -m %NPM_PACKAGE_VERSION% && git push origin main",
+    "try": "pnpm build && pnpm package ",
+    "upload": "pnpm build && pnpm backup && pnpm deploy"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "devDependencies": {
+    "@types/node": "24.7.2",
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "19.2.2",
+    "electron": "^38.2.2",
+    "electron-builder": "^26.0.12",
+    "typescript": "^5.6.0"
+  },
+  "build": {
+    "productName": "LED File Maker",
+    "appId": "com.wbm.led-file-maker",
+    "copyright": "WBM Tek",
+    "extends": null,
+    "npmRebuild": false,
+    "asarUnpack": [
+      "**/node_modules/sharp/**/*",
+      "**/node_modules/@img/**/*"
+    ],
+    "files": [
+      "build/**/*",
+      "electron/*"
+    ],
+    "extraResources": [
+      "public/locos/*"
+    ],
+    "win": {
+      "icon": "public/logo512.png",
+      "certificateSubjectName": "WBM Tek (Mareci, William)"
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/wbmmusic/led-file-maker.git"
+  },
+  "packageManager": "pnpm@9.2.0+sha512.98a80fd11c2e7096747762304106432b3ddc67dcf54b5a8c01c93f68a2cd5e05e6821849522a06fb76284d41a2660d5e334f2ee3bbf29183bf2e739b1dafa771"
 }
