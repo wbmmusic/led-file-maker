@@ -39,6 +39,10 @@ import imageSize from 'image-size';
 import sharp from 'sharp';
 import { ColorFormat, FileInfo, ImageOptions, ExportConfig } from '../src/types/fileFormat';
 
+// Vite defines these constants for Electron Forge
+declare const MAIN_WINDOW_VITE_DEV_SERVER_URL: string;
+declare const MAIN_WINDOW_VITE_NAME: string;
+
 /**
  * Register custom protocol scheme as privileged
  * This must be done before app.ready() fires
@@ -178,25 +182,27 @@ const loadFolder = async (path: string): Promise<void> => {
  * - IPC handlers for all application functions
  */
 const createWindow = (): void => {
+  // Suppress CSP warning in development (Vite requires unsafe-eval)
+  process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = 'true';
+
   const win = new BrowserWindow({
     width: 800,
     height: 600,
     icon: join(__dirname, 'favicon.ico'),
     show: false, // Don't show until ready
     webPreferences: {
-      preload: join(__dirname, 'preload.js'), // Will be compiled from preload.ts
+      preload: join(__dirname, 'preload.js'),
       sandbox: false // Required for Node.js integration in preload
     },
     autoHideMenuBar: true
   });
 
-  // Load the app URL (development server or production build)
-  const startUrl = process.env.ELECTRON_START_URL || format({
-    pathname: join(__dirname, '/../build/index.html'),
-    protocol: 'file:',
-    slashes: true
-  });
-  win.loadURL(startUrl);
+  // Load the app using Vite constants
+  if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
+    win.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
+  } else {
+    win.loadFile(join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`));
+  }
 
   // Show window once content is loaded to prevent visual flash
   win.on('ready-to-show', () => win.show());

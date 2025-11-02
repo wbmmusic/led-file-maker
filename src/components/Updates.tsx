@@ -45,7 +45,7 @@ export default function Updates(_props: UpdatesProps): JSX.Element {
    * Sends IPC message to main process to quit and install
    */
   const install = (): void => {
-    window.k.send('installUpdate');
+    window.electronAPI?.installUpdate();
   };
 
   /**
@@ -88,7 +88,7 @@ export default function Updates(_props: UpdatesProps): JSX.Element {
 
   useEffect(() => {
     // Notify main process that React is ready
-    window.k.send('reactIsReady');
+    window.electronAPI?.reactIsReady();
 
     /**
      * Listen for updater events from main process
@@ -100,7 +100,7 @@ export default function Updates(_props: UpdatesProps): JSX.Element {
      * - update-downloaded: Download complete, ready to install
      * - error: Update process error
      */
-    window.k.receive('updater', (event, info) => {
+    window.electronAPI?.onUpdater((event, info) => {
       if (event === 'checking-for-update') {
         console.log('Checking for updates...');
       } else if (event === 'update-not-available') {
@@ -128,15 +128,9 @@ export default function Updates(_props: UpdatesProps): JSX.Element {
      * Receive app version from main process
      * Updates the window title with the version number
      */
-    window.k.receive('app_version', (version) => {
-      window.k.removeListener('app_version');
+    window.electronAPI?.onAppVersion((version) => {
       document.title = 'LED File Maker --- v' + version;
     });
-
-    // Cleanup listeners on unmount
-    return () => {
-      window.k.removeListener('updater');
-    };
   }, []);
 
   return (
