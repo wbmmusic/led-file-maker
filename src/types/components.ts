@@ -70,6 +70,18 @@ export interface PreviewProps {
 export interface ImageOptionsProps {
   /** Callback when options change */
   setOptions: (options: ImageOptions) => void;
+  /** Prefer horizontal compact layout */
+  inline?: boolean;
+  /** Show selected-mapping summary line */
+  showSummary?: boolean;
+  /** Current image width for edge-case option constraints */
+  imageWidth?: number;
+  /** Current image height for edge-case option constraints */
+  imageHeight?: number;
+  /** Disable horizontal flip control */
+  disableHorizontalFlip?: boolean;
+  /** Disable vertical flip control */
+  disableVerticalFlip?: boolean;
 }
 
 /**

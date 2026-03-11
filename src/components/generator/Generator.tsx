@@ -27,13 +27,14 @@ import MenuItem from '@mui/material/MenuItem';
 import Modal from '@mui/material/Modal';
 import Paper from '@mui/material/Paper';
 import Select, { SelectChangeEvent } from '@mui/material/Select';
-import Slider from '@mui/material/Slider';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
+import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
+import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
 
 import Preview from './Preview';
 import Export from './Export';
@@ -65,16 +66,17 @@ export default function Generator(props: GeneratorProps): JSX.Element {
 
   // State management
   const [files, setLocalFiles] = useState<FileInfo[]>(initialFiles);
-  const [currentFrameIndex, setCurrentFrameIndex] = useState<number>(0);
   const [exportModal, setExportModal] = useState<ExportModalState>(defaultExportModal);
   const [format, setFormat] = useState<ColorFormat>('rgb');
   const [errorModal, setErrorModal] = useState<ErrorModalState>(defaultErrorModal);
   const [imageOptions, setImageOptions] = useState<ImageOptionsType | null>(null);
 
+  const disableHorizontalFlip = files.length > 0 && files[0].height === 1;
+  const disableVerticalFlip = files.length > 0 && files[0].width === 1;
+
   // Sync local files with props
   React.useEffect(() => {
     setLocalFiles(initialFiles);
-    setCurrentFrameIndex(0);
   }, [initialFiles]);
 
   /**
@@ -107,84 +109,10 @@ export default function Generator(props: GeneratorProps): JSX.Element {
   };
 
   /**
-   * Navigate to next frame
-   */
-  const goToNextFrame = (): void => {
-    if (currentFrameIndex < files.length - 1) {
-      setCurrentFrameIndex(currentFrameIndex + 1);
-    }
-  };
-
-  /**
-   * Navigate to previous frame
-   */
-  const goToPreviousFrame = (): void => {
-    if (currentFrameIndex > 0) {
-      setCurrentFrameIndex(currentFrameIndex - 1);
-    }
-  };
-
-  /**
-   * Render frame timeline controls
-   */
-  const FrameTimeline = (): JSX.Element | null => {
-    if (files.length === 0) return null;
-    
-    return (
-      <Paper
-        elevation={0}
-        sx={{
-          p: 1.2,
-          borderRadius: 2,
-          border: '1px solid #d4dde8',
-          background: '#f8faff',
-        }}
-      >
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2 }}>
-          {/* Previous frame button */}
-          <IconButton
-            size="small"
-            onClick={goToPreviousFrame}
-            disabled={currentFrameIndex === 0}
-            sx={{ borderRadius: 1 }}
-          >
-            ◀
-          </IconButton>
-
-          {/* Frame counter */}
-          <Typography sx={{ fontSize: 13, fontWeight: 600, color: '#2d3f5f', minWidth: 80 }}>
-            Frame {currentFrameIndex + 1} / {files.length}
-          </Typography>
-
-          {/* Timeline slider */}
-          <Slider
-            value={currentFrameIndex}
-            onChange={(_, newValue) => setCurrentFrameIndex(newValue as number)}
-            min={0}
-            max={files.length - 1}
-            step={1}
-            sx={{ flex: 1, mx: 1 }}
-          />
-
-          {/* Next frame button */}
-          <IconButton
-            size="small"
-            onClick={goToNextFrame}
-            disabled={currentFrameIndex === files.length - 1}
-            sx={{ borderRadius: 1 }}
-          >
-            ▶
-          </IconButton>
-        </Box>
-      </Paper>
-    );
-  };
-
-  /**
    * Render format selection dropdown
    */
   const FormatSelect = (): JSX.Element => (
-    <Box sx={{ width: 110 }}>
+    <Box sx={{ width: 96 }}>
       <FormControl fullWidth>
         <InputLabel id="format-label">Format</InputLabel>
         <Select
@@ -217,7 +145,7 @@ export default function Generator(props: GeneratorProps): JSX.Element {
         <Paper
           elevation={0}
           sx={{
-            p: 1.5,
+            p: 1.1,
             borderRadius: 2,
             border: '1px solid #d4dde8',
             background: '#f9fbff',
@@ -225,32 +153,68 @@ export default function Generator(props: GeneratorProps): JSX.Element {
         >
           <Box
             sx={{
-              display: 'grid',
-              gridTemplateColumns: '1fr auto auto',
-              gap: 1.5,
+              display: 'flex',
+              flexWrap: { xs: 'wrap', xl: 'nowrap' },
+              gap: 0.8,
               alignItems: 'center',
+              justifyContent: 'space-between',
             }}
           >
             {/* LED matrix configuration options */}
-            <ImageOptions setOptions={options => setImageOptions(options)} />
-            
-            {/* Color format selection */}
-            <FormatSelect />
+            <Box sx={{ minWidth: 0, flex: '1 1 auto' }}>
+              <ImageOptions
+                setOptions={options => setImageOptions(options)}
+                inline
+                showSummary={false}
+                imageWidth={files[0]?.width}
+                imageHeight={files[0]?.height}
+                disableHorizontalFlip={disableHorizontalFlip}
+                disableVerticalFlip={disableVerticalFlip}
+              />
+            </Box>
 
-            {/* Export button */}
-            <Button
-              disabled={isDisabled()}
-              onClick={handleExport}
-              size="large"
-              variant="contained"
+            <Box
               sx={{
-                borderRadius: 1.5,
-                px: 3,
-                background: 'linear-gradient(135deg, #1976d2 0%, #0f59a9 100%)',
+                display: 'flex',
+                gap: 0.7,
+                alignItems: 'center',
+                pl: { xs: 0, xl: 0.9 },
+                borderLeft: { xs: 'none', xl: '1px solid #d4dde8' },
+                flex: '0 0 auto',
               }}
             >
-              Export
-            </Button>
+              {/* Color format selection */}
+              <FormatSelect />
+
+              {/* Export icon button */}
+              <Tooltip title="Export .wbmani" arrow>
+                <span>
+                  <IconButton
+                    disabled={isDisabled()}
+                    onClick={handleExport}
+                    aria-label="Export animation"
+                    sx={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: 1.2,
+                      color: '#ffffff',
+                      background: 'linear-gradient(135deg, #1976d2 0%, #0f59a9 100%)',
+                      boxShadow: '0 6px 14px rgba(17, 84, 153, 0.28)',
+                      '&:hover': {
+                        background: 'linear-gradient(135deg, #156abf 0%, #0d4f93 100%)',
+                      },
+                      '&.Mui-disabled': {
+                        background: '#c9d6e8',
+                        color: '#7a8fae',
+                        boxShadow: 'none',
+                      },
+                    }}
+                  >
+                    <DownloadRoundedIcon sx={{ fontSize: 20 }} />
+                  </IconButton>
+                </span>
+              </Tooltip>
+            </Box>
           </Box>
         </Paper>
       );
@@ -310,9 +274,7 @@ export default function Generator(props: GeneratorProps): JSX.Element {
   };
 
   return (
-    <Box sx={{ p: 1.2, display: 'grid', gap: 1.2, gridTemplateRows: 'auto 1fr auto auto' }}>
-      {/* Frame timeline (only shown when files loaded) */}
-      <FrameTimeline />
+    <Box sx={{ p: 1.2, display: 'grid', gap: 1.2, gridTemplateRows: '1fr auto auto' }}>
 
       {/* Hero preview (grows to fill space) */}
       {files.length > 0 && (

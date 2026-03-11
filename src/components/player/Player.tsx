@@ -357,6 +357,12 @@ export default function Player(props: PlayerProps): JSX.Element {
   return (
     <Box sx={{ display: 'grid', gap: 1.2 }}>
       {file.width && file.height && file.frames && frame !== null && (
+        (() => {
+          const frameDigits = Math.max(1, String(file.frames).length);
+          const currentFrameLabel = String(frame + 1).padStart(frameDigits, '0');
+          const totalFrameLabel = String(file.frames).padStart(frameDigits, '0');
+
+          return (
         <Paper
           elevation={0}
           sx={{
@@ -370,7 +376,16 @@ export default function Player(props: PlayerProps): JSX.Element {
             <Typography sx={{ fontWeight: 700, fontSize: 14, color: '#1e2f4d' }}>
               {file.name}
             </Typography>
-            <Typography sx={{ fontSize: 12, color: '#4f6488' }}>{`Frame ${frame + 1}/${file.frames}`}</Typography>
+            <Typography
+              sx={{
+                fontSize: 12,
+                color: '#4f6488',
+                fontVariantNumeric: 'tabular-nums',
+                fontFamily: 'IBM Plex Mono, Consolas, monospace',
+              }}
+            >
+              {`Frame ${currentFrameLabel}/${totalFrameLabel}`}
+            </Typography>
             <Typography sx={{ fontSize: 12, color: '#4f6488' }}>{`Res ${file.width}x${file.height}`}</Typography>
             <Typography sx={{ fontSize: 12, color: '#4f6488' }}>{`Format ${file.format?.toUpperCase()}`}</Typography>
 
@@ -422,6 +437,8 @@ export default function Player(props: PlayerProps): JSX.Element {
             </Box>
           </Box>
         </Paper>
+          );
+        })()
       )}
 
       {makeStatus()}

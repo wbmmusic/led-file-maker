@@ -30,6 +30,8 @@ import { PreviewProps } from '../../types';
 const Preview = ({ files, pause, imageOptions }: PreviewProps): JSX.Element => {
   // Current frame index being displayed
   const [state, setState] = useState<number>(0);
+  const frameDigits = Math.max(1, String(files.length).length);
+  const frameLabel = String(state).padStart(frameDigits, '0');
 
   /**
    * Render file metadata information
@@ -49,7 +51,8 @@ const Preview = ({ files, pause, imageOptions }: PreviewProps): JSX.Element => {
             Height: <b>{files[0].height}</b>px
           </Box>
           <Box sx={chipStyle}>
-            Frame: <b>{state + 1}</b>
+            Frame:{' '}
+            <b style={frameValueStyle}>{frameLabel}</b>
           </Box>
         </Fragment>
       );
@@ -150,6 +153,11 @@ const chipStyle = {
   color: '#31415a',
   border: '1px solid #c8d4e7',
   backgroundColor: '#ffffffcc',
+};
+
+const frameValueStyle: React.CSSProperties = {
+  fontVariantNumeric: 'tabular-nums',
+  fontFamily: 'IBM Plex Mono, Consolas, monospace',
 };
 
 export default Preview;
