@@ -33,7 +33,7 @@ export default function Player(_props: PlayerProps): JSX.Element {
 
   // Refs for canvas rendering
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const imageRef = useRef<HTMLImageElement>(null);
+  const imageDataRef = useRef<ImageData | null>(null);
 
   /**
    * Convert two bytes to a 16-bit number (big-endian)
@@ -82,7 +82,6 @@ export default function Player(_props: PlayerProps): JSX.Element {
    */
   useEffect(() => {
     if (file.data && file.data.length > 0) {
-      console.log('File loaded:', file);
       setFrame(0);
     }
   }, [file]);
@@ -92,20 +91,6 @@ export default function Player(_props: PlayerProps): JSX.Element {
    * This creates the animation loop
    */
   useEffect(() => {
-    /**
-     * Extract a range of bytes from the file data
-     * @param start - Start index
-     * @param length - Number of bytes to extract
-     * @returns Array of bytes
-     */
-    const getBytes = (start: number, length: number): number[] => {
-      const out: number[] = [];
-      for (let i = 0; i < length; i++) {
-        out.push(file.data![start + i]);
-      }
-      return out;
-    };
-
     let timer: NodeJS.Timeout;
     
     if (frame === null || !file.width || !file.height || !file.data) {
@@ -118,71 +103,60 @@ export default function Player(_props: PlayerProps): JSX.Element {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Create ImageData for this frame
-    const imageData = ctx.createImageData(file.width, file.height);
+    // Reuse ImageData buffer across frames to reduce allocations.
+    if (
+      !imageDataRef.current ||
+      imageDataRef.current.width !== file.width ||
+      imageDataRef.current.height !== file.height
+    ) {
+      imageDataRef.current = ctx.createImageData(file.width, file.height);
+    }
+    const imageData = imageDataRef.current;
 
     // Calculate frame data location in file
     const numberOfPixels = file.width * file.height;
     const startOfFrame = frame * numberOfPixels * 3 + 9; // +9 for header
 
-    // Extract frame data
-    const frameData = getBytes(startOfFrame, numberOfPixels * 3);
+    const frameData = file.data as Uint8Array;
 
-    /**
-     * Factory function to create color channel reordering function
-     * Different LED files may store colors in different orders
-     * This function reorders them to RGB for canvas display
-     * 
-     * @returns Function that reorders color channels to RGB
-     */
-    let getRGB: (a: number, b: number, c: number) => [number, number, number];
-
+    let redOffset = 0;
+    let greenOffset = 1;
+    let blueOffset = 2;
     switch (file.format) {
-      case 'rgb':
-        getRGB = (r, g, b) => [r, g, b];
-        break;
       case 'rbg':
-        getRGB = (r, b, g) => [r, g, b];
+        redOffset = 0; greenOffset = 2; blueOffset = 1;
         break;
       case 'bgr':
-        getRGB = (b, g, r) => [r, g, b];
+        redOffset = 2; greenOffset = 1; blueOffset = 0;
         break;
       case 'brg':
-        getRGB = (b, r, g) => [r, g, b];
+        redOffset = 1; greenOffset = 2; blueOffset = 0;
         break;
       case 'grb':
-        getRGB = (g, r, b) => [r, g, b];
+        redOffset = 1; greenOffset = 0; blueOffset = 2;
         break;
       case 'gbr':
-        getRGB = (g, b, r) => [r, g, b];
+        redOffset = 2; greenOffset = 0; blueOffset = 1;
         break;
       default:
-        getRGB = (r, g, b) => [r, g, b];
+        redOffset = 0; greenOffset = 1; blueOffset = 2;
         break;
     }
 
     // Decode each pixel from frame data
     for (let i = 0; i < numberOfPixels; i++) {
-      const data = getRGB(
-        frameData[i * 3],
-        frameData[i * 3 + 1],
-        frameData[i * 3 + 2]
-      );
+      const src = startOfFrame + i * 3;
+      const dest = i * 4;
 
       // Write pixel to ImageData (RGBA format)
-      imageData.data[i * 4 + 0] = data[0]; // R
-      imageData.data[i * 4 + 1] = data[1]; // G
-      imageData.data[i * 4 + 2] = data[2]; // B
-      imageData.data[i * 4 + 3] = 255;     // A (fully opaque)
+      imageData.data[dest + 0] = frameData[src + redOffset];
+      imageData.data[dest + 1] = frameData[src + greenOffset];
+      imageData.data[dest + 2] = frameData[src + blueOffset];
+      imageData.data[dest + 3] = 255;
     }
 
     // Render to canvas
     ctx.putImageData(imageData, 0, 0);
-    
-    // Convert canvas to image for scaled preview
-    if (imageRef.current) {
-      imageRef.current.src = canvas.toDataURL();
-    }
 
     // Schedule next frame (~30fps)
     timer = setTimeout(() => {
@@ -282,22 +256,13 @@ export default function Player(_props: PlayerProps): JSX.Element {
 
     return (
       <div>
-        {/* Original size canvas (hidden, used for rendering) */}
+        {/* Render directly to the visible canvas to avoid per-frame data URL conversion. */}
         <canvas 
           ref={canvasRef} 
           width={file.width} 
           height={file.height}
-          style={{ display: 'none' }}
+          style={{ width: '100%', maxHeight: '300px', height: 'auto', imageRendering: 'pixelated' }}
         />
-        {/* Scaled preview image */}
-        <div>
-          <img
-            style={{ width: '100%', maxHeight: '300px', objectFit: 'contain' }}
-            ref={imageRef}
-            src=""
-            alt="Animation preview"
-          />
-        </div>
       </div>
     );
   };

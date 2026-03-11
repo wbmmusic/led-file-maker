@@ -138,38 +138,29 @@ export default function Generator(_props: GeneratorProps): JSX.Element {
         padding: '5px',
       }}
     >
-      {(() => {
-        console.log('[Generator] Rendering', files.length, 'files');
-        console.log('[Generator] First file:', files[0]);
-        return files.map((file, idx) => {
-          if (idx === 0) {
-            console.log('[Generator] Rendering first image with src:', `atom://${file.name}`);
-          }
-          return (
-            <div
-              key={`fileBox${idx}`}
-            style={{
-              display: 'inline-block',
-              padding: '4px',
-              margin: '2px',
-              backgroundColor: 'lightgrey',
-              maxWidth: '100px',
-              minWidth: '100px',
-            }}
-          >
-            {file.name}
-            <div>
-              {/* Use custom atom:// protocol to load local images */}
-              <img
-                style={{ maxWidth: '100%', maxHeight: '100%' }}
-                src={`atom://${file.name}`}
-                alt={file.name}
-              />
-            </div>
+      {files.map((file, idx) => (
+        <div
+          key={`fileBox${idx}`}
+          style={{
+            display: 'inline-block',
+            padding: '4px',
+            margin: '2px',
+            backgroundColor: 'lightgrey',
+            maxWidth: '100px',
+            minWidth: '100px',
+          }}
+        >
+          {file.name}
+          <div>
+            {/* Use custom atom:// protocol to load local images */}
+            <img
+              style={{ maxWidth: '100%', maxHeight: '100%' }}
+              src={`atom://${file.name}`}
+              alt={file.name}
+            />
           </div>
-          );
-        });
-      })()}
+        </div>
+      ))}
     </div>
   );
 
@@ -197,7 +188,7 @@ export default function Generator(_props: GeneratorProps): JSX.Element {
               id="output-type-select"
               value={10}
               label="Output Type"
-              onChange={e => console.log(e.target.value)}
+              onChange={() => {}}
             >
               <MenuItem value={10}>WBM Animation</MenuItem>
               <MenuItem value={20}>Other</MenuItem>

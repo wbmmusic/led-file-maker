@@ -61,7 +61,7 @@ const Preview = ({ files, pause, imageOptions }: PreviewProps): JSX.Element => {
   useEffect(() => {
     let timer: NodeJS.Timeout;
     
-    if (!pause) {
+    if (!pause && files.length > 1) {
       timer = setInterval(() => {
         setState(old => {
           // Loop back to start when reaching the end

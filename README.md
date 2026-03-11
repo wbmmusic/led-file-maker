@@ -1,13 +1,13 @@
 # LED Animation File Generator
 
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.6.0-blue?logo=typescript)
-![React](https://img.shields.io/badge/React-19.1.1-61dafb?logo=react)
-![Electron](https://img.shields.io/badge/Electron-38.2.0-47848f?logo=electron)
+![React](https://img.shields.io/badge/React-19.2.4-61dafb?logo=react)
+![Electron](https://img.shields.io/badge/Electron-40.8.0-47848f?logo=electron)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 A desktop application for creating LED animation files **pre-processed for direct DMA transfer to LED strips**. Converts image sequences into optimized binary files where pixel data is stored in the exact color format and order that your LED hardware expects - eliminating runtime processing on microcontrollers.
 
-> **✨ Now fully migrated to TypeScript!** Complete with type safety, comprehensive documentation, and improved code quality.
+Type-safe desktop tooling for generating `.wbmani` animation files with a React + Electron workflow.
 
 ## Why This Exists
 
@@ -20,7 +20,7 @@ LED strips (WS2812, APA102, etc.) have different color orders (RGB vs GRB vs BGR
 - [Usage](#usage)
 - [File Format](#file-format)
 - [Development](#development)
-- [TypeScript Migration](#typescript-migration)
+- [Behavior Notes](#behavior-notes)
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -70,6 +70,16 @@ pnpm dev
 5. Preview animation
 6. Export to binary file
 
+### Input Folder Rules
+- All source images in the folder must have the same resolution and image type
+- Non-image files are ignored during folder load
+- Export order follows directory listing order from the OS; use a zero-padded naming scheme (`frame0001.png`, `frame0002.png`, etc.) for predictable sequencing
+
+### Export Option Constraints (Current App Behavior)
+- The UI shows all start-corner and pixel-order options, but not every combination is currently exportable
+- If an unsupported combination is selected, export fails with an "Unsupported pixel order" error
+- Flip options currently affect preview only; they are not applied during file export
+
 ### Playing Animations
 1. Go to Player tab
 2. Click "Open File" and select generated animation file
@@ -98,9 +108,9 @@ See [WBMANI_FORMAT.md](WBMANI_FORMAT.md) for complete specification including C 
 - **image-size 2.0.2** - Fast image dimension detection
 
 ### Build Tools
-- **React Scripts 5.0.1** - React build configuration
-- **TypeScript Compiler** - Dual compilation (React + Electron)
-- **electron-builder** - Application packaging
+- **Electron Forge** - Packaging, making installers, and publishing
+- **Vite** - Build pipeline for main, preload, and renderer targets
+- **Electron Forge Vite Plugin** - Integrates Vite with Electron Forge
 
 ### Code Quality
 - **Strict TypeScript** - Complete type coverage
@@ -112,7 +122,7 @@ See [WBMANI_FORMAT.md](WBMANI_FORMAT.md) for complete specification including C 
 ```
 led-file-maker/
 ├── public/
-│   ├── app.ts          # Electron main process (TypeScript)
+│   ├── main.ts         # Electron main process (TypeScript)
 │   └── preload.ts      # Electron preload script (TypeScript)
 ├── src/
 │   ├── components/     # React components (TypeScript)
@@ -127,8 +137,7 @@ led-file-maker/
 │   ├── App.tsx         # Main application component
 │   └── index.tsx       # React entry point
 ├── build/              # Compiled output (gitignored)
-├── WBMANI_FORMAT.md   # File format documentation
-└── TYPESCRIPT_CONVERSION.md  # Migration guide
+└── WBMANI_FORMAT.md   # File format documentation
 ```
 
 ## Development
@@ -145,44 +154,41 @@ pnpm install
 # Development mode (hot reload)
 pnpm dev
 
-# Build TypeScript
-pnpm build:electron
-
-# Build React app
+# Build all Vite targets
 pnpm build
 ```
 
 ### Available Scripts
 ```bash
-pnpm start          # Start React dev server only
-pnpm dev            # Start React + Electron in development mode
-pnpm build          # Full production build (Electron + React)
-pnpm build:electron # Compile TypeScript (Electron files only)
-pnpm package        # Create distributable package
-pnpm deploy         # Build and publish update
+pnpm dev      # Start Electron app in development mode
+pnpm build    # Build Vite targets
+pnpm package  # Package app without creating installers
+pnpm make     # Create platform installers/packages
+pnpm publish  # Publish via configured publisher
+pnpm deploy   # Make and publish release artifacts
 ```
 
-## TypeScript Migration
+## Behavior Notes
 
-This project was fully migrated from JavaScript to TypeScript in October 2025. Key improvements:
+### Auto-Update Behavior
+- Update checks run only in packaged builds
+- The app checks for updates on launch and then once per hour
+- In development mode, updater checks are skipped
 
-### Type Safety
-- ✅ Complete type definitions for all components
-- ✅ Strict null checks enabled
-- ✅ No implicit `any` types
-- ✅ Full IPC type safety between main and renderer
+### Output Type Dropdown
+- The Generator UI currently supports WBM Animation output
+- "Other" appears in the dropdown as placeholder UI only and is not implemented
 
-### Documentation
-- ✅ JSDoc comments on all functions
-- ✅ Inline comments for complex algorithms
-- ✅ Protocol specification document ([WBMANI_FORMAT.md](WBMANI_FORMAT.md))
-- ✅ Migration guide ([TYPESCRIPT_CONVERSION.md](TYPESCRIPT_CONVERSION.md))
+### Start Corner + Pixel Order Support Matrix
 
-### Bug Fixes During Migration
-- Fixed custom protocol handler (atom://) for local image loading
-- Fixed image-size library v2.x API usage
-- Fixed React 19 JSX namespace compatibility
-- Fixed duplicate file parameter detection
+| Start Corner | Supported Pixel Orders |
+|--------------|------------------------|
+| `topLeft`    | `horizontal`, `vertical`, `horizontalAlternate` |
+| `topRight`   | `horizontal`, `horizontalAlternate` |
+| `bottomLeft` | `horizontal`, `verticalAlternate` |
+| `bottomRight`| `vertical`, `verticalAlternate` |
+
+See [WBMANI_FORMAT.md](WBMANI_FORMAT.md) for format details and embedded-side parsing guidance.
 
 ## Cross-Platform Support
 
@@ -293,7 +299,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - Built with [Electron](https://www.electronjs.org/)
 - UI powered by [Material-UI](https://mui.com/)
 - Image processing by [Sharp](https://sharp.pixelplumbing.com/)
-- TypeScript migration completed October 2025
 
 ---
 

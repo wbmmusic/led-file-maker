@@ -35,7 +35,7 @@ import {
   WriteStream 
 } from 'fs';
 import { writeFile, readFile } from 'fs/promises';
-import imageSize from 'image-size';
+import { imageSize } from 'image-size';
 import sharp from 'sharp';
 import { ColorFormat, FileInfo, ImageOptions, ExportConfig } from '../src/types/fileFormat';
 
@@ -80,7 +80,6 @@ interface ImageSize {
 async function sizeOfAsync(filePath: string): Promise<ImageSize> {
   // image-size requires a Buffer, not a file path - read the file first
   const buffer = readFileSync(filePath);
-  // @ts-ignore - image-size types are incomplete, but the function works correctly
   const result = imageSize(buffer);
   return Promise.resolve(result as ImageSize);
 }
@@ -91,6 +90,28 @@ async function sizeOfAsync(filePath: string): Promise<ImageSize> {
  */
 let folderPath: string = '';
 let files: FileInfo[] = [];
+let mainWindow: BrowserWindow | null = null;
+
+// Ensure only one app instance can run at a time.
+const gotTheLock = app.requestSingleInstanceLock();
+
+if (!gotTheLock) {
+  app.quit();
+}
+
+app.on('second-instance', () => {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    if (mainWindow.isMinimized()) {
+      mainWindow.restore();
+    }
+    mainWindow.focus();
+    return;
+  }
+
+  if (app.isReady()) {
+    createWindow();
+  }
+});
 
 /**
  * Load and validate all images from a directory
@@ -164,6 +185,14 @@ const loadFolder = async (path: string): Promise<void> => {
       return;
     }
 
+    if (files.length === 0) {
+      reject(JSON.stringify({
+        msg: 'No valid images were found in the selected folder',
+        data: []
+      }));
+      return;
+    }
+
     console.log('Image parameters:', fileParams);
     console.log(`Loaded ${files.length} files`);
     console.log('First 3 files:', files.slice(0, 3));
@@ -206,6 +235,12 @@ const createWindow = (): void => {
 
   // Show window once content is loaded to prevent visual flash
   win.on('ready-to-show', () => win.show());
+  win.on('closed', () => {
+    if (mainWindow === win) {
+      mainWindow = null;
+    }
+  });
+  mainWindow = win;
 
   /**
    * Configure all IPC (Inter-Process Communication) handlers
@@ -390,10 +425,21 @@ const createWindow = (): void => {
      */
     ipcMain.on('export', async (_e: IpcMainEvent, exportConfig: ExportConfig) => {
       let canceled = false;
+      let exportFailed = false;
       const outPath = exportConfig.path;
-      const tempPath = join(parse(outPath).dir, 'temp.wbmani');
+      const outPathParts = parse(outPath);
+      const tempPath = join(
+        outPathParts.dir,
+        `.${outPathParts.name}.${process.pid}.${Date.now()}.tmp.wbmani`
+      );
       const options = exportConfig.imageOptions;
       const format = exportConfig.format;
+
+      if (files.length === 0) {
+        console.error('Export requested with no loaded images');
+        win.webContents.send('finishedExport');
+        return;
+      }
 
       console.log('=== Export Started ===');
       console.log('Output path:', outPath);
@@ -623,30 +669,38 @@ const createWindow = (): void => {
             
           } catch (error) {
             console.error('Error processing frame:', error);
-            fileWriter.close();
-            throw error;
+            exportFailed = true;
+            canceled = true;
+            break;
           }
         }
 
         // Finalize export
-        if (!canceled) {
-          fileWriter.close();
-          fileWriter.on('finish', () => {
+        fileWriter.end(() => {
+          try {
+            if (canceled || exportFailed) {
+              console.log('Export canceled/failed - cleaning up temp file');
+              if (existsSync(tempPath)) unlinkSync(tempPath);
+              win.webContents.send('finishedExport');
+              return;
+            }
+
             // Replace existing file if it exists
             if (existsSync(outPath)) unlinkSync(outPath);
+
+            if (!existsSync(tempPath)) {
+              throw new Error(`Temporary export file missing: ${tempPath}`);
+            }
+
             renameSync(tempPath, outPath);
-            
             win.webContents.send('finishedExport');
             console.log(`Export completed in ${(Date.now() - exportStartTime) / 1000} seconds`);
-          });
-        } else {
-          // Clean up temp file if export was canceled
-          fileWriter.close();
-          fileWriter.on('close', () => {
-            console.log('Export canceled - cleaning up temp file');
+          } catch (error) {
+            console.error('Export finalization error:', error);
             if (existsSync(tempPath)) unlinkSync(tempPath);
-          });
-        }
+            win.webContents.send('finishedExport');
+          }
+        });
         
         ipcMain.removeHandler('cancelExport');
       });
@@ -675,7 +729,8 @@ const createWindow = (): void => {
  * Application lifecycle: whenReady
  * Called when Electron has finished initialization
  */
-app.whenReady().then(async () => {
+if (gotTheLock) {
+  app.whenReady().then(async () => {
   console.log('[App] App is ready, registering protocol...');
   
   try {
@@ -686,20 +741,14 @@ app.whenReady().then(async () => {
      */
     protocol.handle('atom', async (request) => {
       try {
-        console.log(`[Protocol Handler] ========== REQUEST RECEIVED ==========`);
-        console.log(`[Protocol Handler] Request URL: ${request.url}`);
-        console.log(`[Protocol Handler] Current folderPath: ${folderPath}`);
-        
-        // Remove 'atom://' prefix (7 characters)
-        const url = decodeURIComponent(request.url.slice(7));
+        // Support both atom://filename and atom:///filename URL forms.
+        const parsed = new URL(request.url);
+        const rawPath = `${parsed.host}${parsed.pathname === '/' ? '' : parsed.pathname}`;
+        const url = decodeURIComponent(rawPath).replace(/^\/+/, '');
         const fullPath = normalize(join(folderPath, url));
         
-        console.log(`[Protocol Handler] Decoded filename: ${url}`);
-        console.log(`[Protocol Handler] Full path: ${fullPath}`);
-        console.log(`[Protocol Handler] File exists: ${existsSync(fullPath)}`);
-        
         if (!existsSync(fullPath)) {
-          console.error(`[Protocol Handler] ERROR: File not found: ${fullPath}`);
+          console.error(`[Protocol Handler] File not found: ${fullPath}`);
           return new Response('File not found', { status: 404 });
         }
         
@@ -715,20 +764,15 @@ app.whenReady().then(async () => {
         };
         const contentType = contentTypeMap[ext] || 'application/octet-stream';
         
-        console.log(`[Protocol Handler] Content-Type: ${contentType}`);
-        console.log(`[Protocol Handler] Reading file...`);
-        
         // Read and return the file
         const fileData = readFileSync(fullPath);
-        console.log(`[Protocol Handler] File size: ${fileData.length} bytes`);
-        console.log(`[Protocol Handler] SUCCESS - Returning file`);
         
         return new Response(fileData, {
           status: 200,
           headers: { 'content-type': contentType }
         });
       } catch (error) {
-        console.error(`[Protocol Handler] EXCEPTION:`, error);
+        console.error('[Protocol Handler] Exception:', error);
         return new Response('Internal server error', { status: 500 });
       }
     });
@@ -739,7 +783,8 @@ app.whenReady().then(async () => {
   }
 
   createWindow();
-});
+  });
+}
 
 /**
  * Application lifecycle: window-all-closed

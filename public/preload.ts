@@ -1,5 +1,19 @@
 import { contextBridge, ipcRenderer } from 'electron';
 
+const kBridge = {
+  invoke: (channel: string, ...args: any[]) => ipcRenderer.invoke(channel, ...args),
+  send: (channel: string, args?: any) => ipcRenderer.send(channel, args),
+  receive: (channel: string, callback: (...args: any[]) => void) => {
+    ipcRenderer.on(channel, (_event, ...args) => {
+      callback(...args);
+    });
+  },
+  removeListener: (channel: string) => ipcRenderer.removeAllListeners(channel),
+};
+
+// Backward-compatible bridge used throughout the renderer codebase.
+contextBridge.exposeInMainWorld('k', kBridge);
+
 // Expose protected methods that allow the renderer process to use
 // the ipcRenderer without exposing the entire object
 contextBridge.exposeInMainWorld('electronAPI', {

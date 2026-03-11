@@ -160,6 +160,23 @@ When building LED matrices from strips, you physically chain strips together. Th
 
 The generator handles this reordering automatically based on your image and wiring configuration.
 
+### Current Generator Support Matrix (Implementation Note)
+
+The `.wbmani` format itself is flexible, but the current app build supports a specific set of start-corner and pixel-order combinations during export.
+
+| Start Corner | Supported Pixel Orders |
+|--------------|------------------------|
+| `topLeft`    | `horizontal`, `vertical`, `horizontalAlternate` |
+| `topRight`   | `horizontal`, `horizontalAlternate` |
+| `bottomLeft` | `horizontal`, `verticalAlternate` |
+| `bottomRight`| `vertical`, `verticalAlternate` |
+
+If an unsupported combination is selected in the UI, export fails with an "Unsupported pixel order" error.
+
+### Flip Option Behavior (Current Build)
+
+The generator UI has horizontal/vertical flip controls for preview. In the current build, flip settings are visual-only and are not applied to exported frame data.
+
 ---
 
 ## Reading a .wbmani File

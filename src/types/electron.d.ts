@@ -51,6 +51,22 @@ interface ElectronAPI {
   removeListener(channel: keyof IpcChannels): void;
 }
 
+interface ElectronUpdaterAPI {
+  chooseFolder: () => Promise<any>;
+  clearImages: () => Promise<any>;
+  chooseOutput: () => Promise<any>;
+  saveWbmAni: (path: string, data: Buffer) => Promise<any>;
+  openAniFile: () => Promise<any>;
+  export: (config: any) => void;
+  cancelExport: () => Promise<any>;
+  reactIsReady: () => void;
+  installUpdate: () => void;
+  onAppVersion: (callback: (version: string) => void) => void;
+  onUpdater: (callback: (event: string, data?: any) => void) => void;
+  onProcessedFrame: (callback: (filename: string) => void) => void;
+  onFinishedExport: (callback: () => void) => void;
+}
+
 declare global {
   interface Window {
     /**
@@ -58,6 +74,7 @@ declare global {
      * Exposed via contextBridge in preload script
      */
     k: ElectronAPI;
+    electronAPI?: ElectronUpdaterAPI;
   }
 }
 
