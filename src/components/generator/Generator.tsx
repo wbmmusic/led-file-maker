@@ -20,20 +20,20 @@
 import React, { useState } from 'react';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
-import Divider from '@mui/material/Divider';
 import FormControl from '@mui/material/FormControl';
+import IconButton from '@mui/material/IconButton';
 import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
 import Modal from '@mui/material/Modal';
 import Paper from '@mui/material/Paper';
 import Select, { SelectChangeEvent } from '@mui/material/Select';
+import Slider from '@mui/material/Slider';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Typography from '@mui/material/Typography';
-import CircularProgress from '@mui/material/CircularProgress';
 
 import Preview from './Preview';
 import Export from './Export';
@@ -59,18 +59,26 @@ const defaultErrorModal: ErrorModalState = {
  * LED animation generator interface
  * @returns The rendered generator component
  */
-export default function Generator(_props: GeneratorProps): JSX.Element {
+export default function Generator(props: GeneratorProps): JSX.Element {
+  // Props
+  const { files: initialFiles, setFiles } = props;
+
   // State management
-  const [files, setFiles] = useState<FileInfo[]>([]);
+  const [files, setLocalFiles] = useState<FileInfo[]>(initialFiles);
+  const [currentFrameIndex, setCurrentFrameIndex] = useState<number>(0);
   const [exportModal, setExportModal] = useState<ExportModalState>(defaultExportModal);
   const [format, setFormat] = useState<ColorFormat>('rgb');
   const [errorModal, setErrorModal] = useState<ErrorModalState>(defaultErrorModal);
   const [imageOptions, setImageOptions] = useState<ImageOptionsType | null>(null);
-  const [loadingModal, setLoadingModal] = useState<boolean>(false);
+
+  // Sync local files with props
+  React.useEffect(() => {
+    setLocalFiles(initialFiles);
+    setCurrentFrameIndex(0);
+  }, [initialFiles]);
 
   /**
    * Handle export modal close
-   * Called when export completes or is canceled
    */
   const handleCloseExport = (_data?: any): void => {
     console.log('Export completed');
@@ -79,7 +87,6 @@ export default function Generator(_props: GeneratorProps): JSX.Element {
 
   /**
    * Check if export button should be disabled
-   * @returns true if no files loaded, false otherwise
    */
   const isDisabled = (): boolean => {
     return files.length === 0;
@@ -87,7 +94,6 @@ export default function Generator(_props: GeneratorProps): JSX.Element {
 
   /**
    * Handle export button click
-   * Opens file save dialog and shows export modal
    */
   const handleExport = (): void => {
     window.k
@@ -101,172 +107,152 @@ export default function Generator(_props: GeneratorProps): JSX.Element {
   };
 
   /**
-   * Render clear images button if files are loaded
-   * @returns Clear button or null
+   * Navigate to next frame
    */
-  const makeClearImages = (): JSX.Element | null => {
-    if (files.length > 0) {
-      return (
-        <Button
-          color="error"
-          size="small"
-          onClick={() => {
-            window.k
-              .invoke('clearImages')
-              .then(res => setFiles(res))
-              .catch(err => console.error('Error clearing images:', err));
-          }}
-        >
-          Clear Images
-        </Button>
-      );
+  const goToNextFrame = (): void => {
+    if (currentFrameIndex < files.length - 1) {
+      setCurrentFrameIndex(currentFrameIndex + 1);
     }
-    return null;
   };
 
   /**
-   * Render loaded images grid
-   * Shows thumbnail previews of all loaded images
+   * Navigate to previous frame
    */
-  const ImagesBox = (): JSX.Element => (
-    <div
-      style={{
-        height: '200px',
-        border: '1px solid lightgrey',
-        overflowY: 'auto',
-        fontSize: '10px',
-        padding: '5px',
-      }}
-    >
-      {files.map((file, idx) => (
-        <div
-          key={`fileBox${idx}`}
-          style={{
-            display: 'inline-block',
-            padding: '4px',
-            margin: '2px',
-            backgroundColor: 'lightgrey',
-            maxWidth: '100px',
-            minWidth: '100px',
-          }}
-        >
-          {file.name}
-          <div>
-            {/* Use custom atom:// protocol to load local images */}
-            <img
-              style={{ maxWidth: '100%', maxHeight: '100%' }}
-              src={`atom://${file.name}`}
-              alt={file.name}
-            />
-          </div>
-        </div>
-      ))}
-    </div>
-  );
+  const goToPreviousFrame = (): void => {
+    if (currentFrameIndex > 0) {
+      setCurrentFrameIndex(currentFrameIndex - 1);
+    }
+  };
+
+  /**
+   * Render frame timeline controls
+   */
+  const FrameTimeline = (): JSX.Element | null => {
+    if (files.length === 0) return null;
+    
+    return (
+      <Paper
+        elevation={0}
+        sx={{
+          p: 1.2,
+          borderRadius: 2,
+          border: '1px solid #d4dde8',
+          background: '#f8faff',
+        }}
+      >
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2 }}>
+          {/* Previous frame button */}
+          <IconButton
+            size="small"
+            onClick={goToPreviousFrame}
+            disabled={currentFrameIndex === 0}
+            sx={{ borderRadius: 1 }}
+          >
+            ◀
+          </IconButton>
+
+          {/* Frame counter */}
+          <Typography sx={{ fontSize: 13, fontWeight: 600, color: '#2d3f5f', minWidth: 80 }}>
+            Frame {currentFrameIndex + 1} / {files.length}
+          </Typography>
+
+          {/* Timeline slider */}
+          <Slider
+            value={currentFrameIndex}
+            onChange={(_, newValue) => setCurrentFrameIndex(newValue as number)}
+            min={0}
+            max={files.length - 1}
+            step={1}
+            sx={{ flex: 1, mx: 1 }}
+          />
+
+          {/* Next frame button */}
+          <IconButton
+            size="small"
+            onClick={goToNextFrame}
+            disabled={currentFrameIndex === files.length - 1}
+            sx={{ borderRadius: 1 }}
+          >
+            ▶
+          </IconButton>
+        </Box>
+      </Paper>
+    );
+  };
 
   /**
    * Render format selection dropdown
-   * Allows selection of RGB channel order for LED hardware
    */
   const FormatSelect = (): JSX.Element => (
-    <div style={{ marginTop: '6px', display: 'inline-block' }}>
-      <div
-        style={{
-          paddingTop: '5px',
-          display: 'flex',
-          flexWrap: 'wrap',
-          alignItems: 'center',
-        }}
-      >
-        {/* Output type selector (currently only WBM Animation supported) */}
-        <Box sx={{ width: 170 }}>
-          <FormControl fullWidth>
-            <InputLabel id="output-type-label">Output Type</InputLabel>
-            <Select
-              size="small"
-              labelId="output-type-label"
-              id="output-type-select"
-              value={10}
-              label="Output Type"
-              onChange={() => {}}
-            >
-              <MenuItem value={10}>WBM Animation</MenuItem>
-              <MenuItem value={20}>Other</MenuItem>
-            </Select>
-          </FormControl>
-        </Box>
-        {/* Color format selector */}
-        <Box sx={{ width: 90, marginLeft: '10px' }}>
-          <FormControl fullWidth>
-            <InputLabel id="format-label">Format</InputLabel>
-            <Select
-              size="small"
-              labelId="format-label"
-              id="format-select"
-              value={format}
-              label="Format"
-              onChange={(e: SelectChangeEvent<ColorFormat>) => 
-                setFormat(e.target.value as ColorFormat)
-              }
-            >
-              <MenuItem value={'rgb' as ColorFormat}>RGB</MenuItem>
-              <MenuItem value={'rbg' as ColorFormat}>RBG</MenuItem>
-              <MenuItem value={'bgr' as ColorFormat}>BGR</MenuItem>
-              <MenuItem value={'brg' as ColorFormat}>BRG</MenuItem>
-              <MenuItem value={'grb' as ColorFormat}>GRB</MenuItem>
-              <MenuItem value={'gbr' as ColorFormat}>GBR</MenuItem>
-            </Select>
-          </FormControl>
-        </Box>
-      </div>
-    </div>
+    <Box sx={{ width: 110 }}>
+      <FormControl fullWidth>
+        <InputLabel id="format-label">Format</InputLabel>
+        <Select
+          size="small"
+          labelId="format-label"
+          id="format-select"
+          value={format}
+          label="Format"
+          onChange={(e: SelectChangeEvent<ColorFormat>) => 
+            setFormat(e.target.value as ColorFormat)
+          }
+        >
+          <MenuItem value={'rgb' as ColorFormat}>RGB</MenuItem>
+          <MenuItem value={'rbg' as ColorFormat}>RBG</MenuItem>
+          <MenuItem value={'bgr' as ColorFormat}>BGR</MenuItem>
+          <MenuItem value={'brg' as ColorFormat}>BRG</MenuItem>
+          <MenuItem value={'grb' as ColorFormat}>GRB</MenuItem>
+          <MenuItem value={'gbr' as ColorFormat}>GBR</MenuItem>
+        </Select>
+      </FormControl>
+    </Box>
   );
 
   /**
-   * Render export section with preview and options
-   * Only shown when files are loaded
+   * Render footer with tools and export button
    */
-  const makeExportSection = (): JSX.Element | null => {
+  const makeFooterSection = (): JSX.Element | null => {
     if (files.length > 0) {
       return (
-        <div>
-          {/* Animated preview of the image sequence */}
-          <Preview
-            imageOptions={imageOptions}
-            pause={exportModal.show}
-            style={{ width: '40px', height: '1px' }}
-            files={files}
-          />
-          <Divider style={{ marginTop: '6px', marginBottom: '6px' }} />
-          {/* Thumbnail grid of all images */}
-          <ImagesBox />
-          <Divider style={{ marginTop: '6px', marginBottom: '6px' }} />
-          <div
-            style={{
-              display: 'flex',
-              flexWrap: 'wrap',
+        <Paper
+          elevation={0}
+          sx={{
+            p: 1.5,
+            borderRadius: 2,
+            border: '1px solid #d4dde8',
+            background: '#f9fbff',
+          }}
+        >
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: '1fr auto auto',
+              gap: 1.5,
               alignItems: 'center',
-              justifyContent: 'space-around',
             }}
           >
             {/* LED matrix configuration options */}
             <ImageOptions setOptions={options => setImageOptions(options)} />
+            
             {/* Color format selection */}
             <FormatSelect />
+
             {/* Export button */}
-            <div style={{ marginTop: '6px' }}>
-              <Button
-                disabled={isDisabled()}
-                onClick={handleExport}
-                size="small"
-                variant="contained"
-              >
-                Export
-              </Button>
-            </div>
-          </div>
-          <Divider style={{ marginTop: '6px', marginBottom: '6px' }} />
-        </div>
+            <Button
+              disabled={isDisabled()}
+              onClick={handleExport}
+              size="large"
+              variant="contained"
+              sx={{
+                borderRadius: 1.5,
+                px: 3,
+                background: 'linear-gradient(135deg, #1976d2 0%, #0f59a9 100%)',
+              }}
+            >
+              Export
+            </Button>
+          </Box>
+        </Paper>
       );
     }
     return null;
@@ -274,7 +260,6 @@ export default function Generator(_props: GeneratorProps): JSX.Element {
 
   /**
    * Render error modal
-   * Shows when images in folder have mismatched dimensions or formats
    */
   const makeErrorModal = (): JSX.Element | null => {
     if (errorModal.show === true) {
@@ -324,61 +309,37 @@ export default function Generator(_props: GeneratorProps): JSX.Element {
     return null;
   };
 
-  /**
-   * Render folder selection and clear buttons
-   */
-  const SelectFolderClearButtons = (): JSX.Element => (
-    <div style={{ display: 'flex', alignItems: 'center' }}>
-      <Button
-        size="small"
-        component="label"
-        onClick={async () => {
-          setLoadingModal(true);
-          window.k
-            .invoke('chooseFolder')
-            .then(res => {
-              if (res !== 'canceled') {
-                setFiles(res);
-              }
-              setLoadingModal(false);
-            })
-            .catch(err => {
-              // Parse error message from main process
-              const errorStr = err.toString();
-              const jsonStart = errorStr.indexOf('{');
-              if (jsonStart !== -1) {
-                try {
-                  const error = JSON.parse(errorStr.substring(jsonStart));
-                  console.error('Folder load error:', error);
-                  setLoadingModal(false);
-                  setErrorModal({
-                    show: true,
-                    message: error.msg,
-                    data: error.data,
-                  });
-                } catch (parseErr) {
-                  console.error('Error parsing error message:', parseErr);
-                  setLoadingModal(false);
-                }
-              } else {
-                console.error('Folder load error:', err);
-                setLoadingModal(false);
-              }
-            });
-        }}
-      >
-        Select Folder Of Images
-      </Button>
-      {makeClearImages()}
-    </div>
-  );
-
   return (
-    <div>
-      {/* Main controls */}
-      <SelectFolderClearButtons />
-      {/* Export section (only shown when files loaded) */}
-      {makeExportSection()}
+    <Box sx={{ p: 1.2, display: 'grid', gap: 1.2, gridTemplateRows: 'auto 1fr auto auto' }}>
+      {/* Frame timeline (only shown when files loaded) */}
+      <FrameTimeline />
+
+      {/* Hero preview (grows to fill space) */}
+      {files.length > 0 && (
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            borderRadius: 2,
+            border: '1px solid #d4dde8',
+            background: 'linear-gradient(135deg, #f9fbff 0%, #eef3fb 100%)',
+            p: 1.5,
+            minHeight: 300,
+            overflow: 'hidden',
+          }}
+        >
+          <Preview
+            imageOptions={imageOptions}
+            pause={exportModal.show}
+            style={{ width: '40px', height: '1px' }}
+            files={files}
+          />
+        </Box>
+      )}
+
+      {/* Footer: Tools and export */}
+      {makeFooterSection()}
       
       {/* Export progress modal */}
       <Modal
@@ -395,6 +356,7 @@ export default function Generator(_props: GeneratorProps): JSX.Element {
               imageOptions={imageOptions}
               format={format}
               path={exportModal.outPath}
+              totalFrames={files.length}
               close={handleCloseExport}
             />
           )}
@@ -411,23 +373,9 @@ export default function Generator(_props: GeneratorProps): JSX.Element {
         </Box>
       </Modal>
       
-      {/* Loading modal */}
-      <Modal
-        open={loadingModal}
-        aria-labelledby="loading-modal-title"
-        aria-describedby="loading-modal-description"
-      >
-        <Box sx={style} component={Paper}>
-          <Typography id="loading-modal-title" variant="h6" component="h2">
-            Loading...
-          </Typography>
-          <CircularProgress />
-        </Box>
-      </Modal>
-      
       {/* Error modal */}
       {makeErrorModal()}
-    </div>
+    </Box>
   );
 }
 

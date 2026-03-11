@@ -57,6 +57,7 @@ interface ElectronUpdaterAPI {
   chooseOutput: () => Promise<any>;
   saveWbmAni: (path: string, data: Buffer) => Promise<any>;
   openAniFile: () => Promise<any>;
+  getAniFrame: (index: number) => Promise<ArrayBuffer>;
   export: (config: any) => void;
   cancelExport: () => Promise<any>;
   reactIsReady: () => void;

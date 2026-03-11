@@ -30,11 +30,13 @@ import {
   readFileSync,
   existsSync, 
   unlinkSync, 
+  createReadStream,
   createWriteStream, 
   renameSync,
+  statSync,
   WriteStream 
 } from 'fs';
-import { writeFile, readFile } from 'fs/promises';
+import { writeFile } from 'fs/promises';
 import { imageSize } from 'image-size';
 import sharp from 'sharp';
 import { ColorFormat, FileInfo, ImageOptions, ExportConfig } from '../src/types/fileFormat';
@@ -91,6 +93,18 @@ async function sizeOfAsync(filePath: string): Promise<ImageSize> {
 let folderPath: string = '';
 let files: FileInfo[] = [];
 let mainWindow: BrowserWindow | null = null;
+let currentAniFile: {
+  path: string;
+  name: string;
+  frames: number;
+  width: number;
+  height: number;
+  format: ColorFormat;
+  fileSize: number;
+  data: Buffer;
+  bytesPerFrame: number;
+  frameOffsets: number[];
+} | null = null;
 
 // Ensure only one app instance can run at a time.
 const gotTheLock = app.requestSingleInstanceLock();
@@ -228,13 +242,59 @@ const createWindow = (): void => {
 
   // Load the app using Vite constants
   if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
-    win.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
+    let devLoadRetries = 0;
+    const maxDevLoadRetries = 10;
+
+    const loadDevUrl = (): void => {
+      win.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL).catch(err => {
+        console.error('[Dev Load] Initial loadURL failed:', err);
+      });
+    };
+
+    win.webContents.on('did-fail-load', (_event, errorCode, errorDescription, validatedURL) => {
+      const isTargetDevUrl = validatedURL?.startsWith(MAIN_WINDOW_VITE_DEV_SERVER_URL);
+      const retryable = errorCode === -102 || errorCode === -101;
+
+      if (!isTargetDevUrl || !retryable) {
+        return;
+      }
+
+      if (devLoadRetries >= maxDevLoadRetries) {
+        console.error('[Dev Load] Giving up after retries:', { errorCode, errorDescription, validatedURL });
+        return;
+      }
+
+      devLoadRetries += 1;
+      const delayMs = 300 * devLoadRetries;
+      console.warn('[Dev Load] Retrying renderer load', {
+        try: devLoadRetries,
+        max: maxDevLoadRetries,
+        errorCode,
+        errorDescription,
+        delayMs,
+      });
+
+      setTimeout(() => {
+        if (!win.isDestroyed()) {
+          loadDevUrl();
+        }
+      }, delayMs);
+    });
+
+    loadDevUrl();
   } else {
     win.loadFile(join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`));
   }
 
   // Show window once content is loaded to prevent visual flash
-  win.on('ready-to-show', () => win.show());
+  win.on('ready-to-show', () => {
+    win.show();
+
+    // Open DevTools in a separate window during development only.
+    if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
+      win.webContents.openDevTools({ mode: 'detach' });
+    }
+  });
   win.on('closed', () => {
     if (mainWindow === win) {
       mainWindow = null;
@@ -333,8 +393,16 @@ const createWindow = (): void => {
      * 
      * @returns Object with file data and name, or 'canceled' if user cancels
      */
-    ipcMain.handle('openAniFile', async (): Promise<{ data: Buffer; name: string } | string> => {
+    ipcMain.handle('openAniFile', async (): Promise<{
+      name: string;
+      frames: number;
+      width: number;
+      height: number;
+      format: string;
+      fileSize: number;
+    } | string> => {
       return new Promise(async (resolve, reject) => {
+        console.log('[Player/Open] Opening .wbmani file picker');
         dialog.showOpenDialog(win, {
           filters: [{
             name: 'WBM Animation',
@@ -343,17 +411,144 @@ const createWindow = (): void => {
         })
           .then(async res => {
             if (res.canceled === true) {
+              console.log('[Player/Open] File picker canceled');
               resolve('canceled');
             } else {
-              const data = await readFile(res.filePaths[0]);
-              resolve({
-                data,
-                name: parse(res.filePaths[0]).base
+              const selectedPath = res.filePaths[0];
+              console.log(`[Player/Open] Selected file: ${selectedPath}`);
+
+              const stats = statSync(selectedPath);
+              const totalBytes = stats.size;
+              win.webContents.send('openAniProgress', {
+                phase: 'start',
+                loaded: 0,
+                total: totalBytes,
+                percent: 0,
               });
+
+              const data = await new Promise<Buffer>((resolveRead, rejectRead) => {
+                const stream = createReadStream(selectedPath);
+                const chunks: Buffer[] = [];
+                let loadedBytes = 0;
+                let lastProgressPercent = -1;
+
+                stream.on('data', (chunk: Buffer) => {
+                  chunks.push(chunk);
+                  loadedBytes += chunk.length;
+                  const percent = totalBytes > 0 ? Math.min(100, Math.round((loadedBytes / totalBytes) * 100)) : 100;
+                  if (percent !== lastProgressPercent) {
+                    lastProgressPercent = percent;
+                    win.webContents.send('openAniProgress', {
+                      phase: 'reading',
+                      loaded: loadedBytes,
+                      total: totalBytes,
+                      percent,
+                    });
+                  }
+                });
+
+                stream.on('end', () => resolveRead(Buffer.concat(chunks)));
+                stream.on('error', rejectRead);
+              });
+
+              if (data.length < 9) {
+                console.error('[Player/Parse/Main] Invalid .wbmani file: fewer than 9 header bytes');
+                win.webContents.send('openAniProgress', {
+                  phase: 'error',
+                  loaded: data.length,
+                  total: totalBytes,
+                  percent: 0,
+                });
+                reject(new Error('Invalid .wbmani header length'));
+                return;
+              } else {
+                const readTwoBytes = (high: number, low: number): number => ((high & 0xff) << 8) | (low & 0xff);
+                const frames = readTwoBytes(data[0], data[1]);
+                const width = readTwoBytes(data[2], data[3]);
+                const height = readTwoBytes(data[4], data[5]);
+                const format = String.fromCharCode(data[6], data[7], data[8]) as ColorFormat;
+                const expectedBytes = 9 + frames * width * height * 3;
+
+                console.log('[Player/Parse/Main] Header:', {
+                  name: parse(selectedPath).base,
+                  frames,
+                  width,
+                  height,
+                  format,
+                  actualBytes: totalBytes,
+                  expectedBytes,
+                  delta: totalBytes - expectedBytes,
+                });
+
+                if (frames <= 0 || width <= 0 || height <= 0) {
+                  console.warn('[Player/Parse/Main] Suspicious header values detected', { frames, width, height });
+                }
+
+                if (expectedBytes !== totalBytes) {
+                  console.warn('[Player/Parse/Main] Size mismatch between header and payload');
+                }
+
+                currentAniFile = {
+                  path: selectedPath,
+                  name: parse(selectedPath).base,
+                  frames,
+                  width,
+                  height,
+                  format,
+                  fileSize: totalBytes,
+                  data,
+                  bytesPerFrame: width * height * 3,
+                  frameOffsets: Array.from({ length: frames }, (_, i) => 9 + i * (width * height * 3)),
+                };
+
+                win.webContents.send('openAniProgress', {
+                  phase: 'done',
+                  loaded: totalBytes,
+                  total: totalBytes,
+                  percent: 100,
+                });
+
+                resolve({
+                  name: currentAniFile.name,
+                  frames: currentAniFile.frames,
+                  width: currentAniFile.width,
+                  height: currentAniFile.height,
+                  format: currentAniFile.format,
+                  fileSize: currentAniFile.fileSize,
+                });
+              }
             }
           })
-          .catch(err => reject(err));
+          .catch(err => {
+            console.error('[Player/Open] Failed to open/read .wbmani file:', err);
+            win.webContents.send('openAniProgress', {
+              phase: 'error',
+              loaded: 0,
+              total: 0,
+              percent: 0,
+            });
+            reject(err);
+          });
       });
+    });
+
+    ipcMain.handle('getAniFrame', async (_e: IpcMainInvokeEvent, payload: { index: number }): Promise<ArrayBuffer> => {
+      if (!currentAniFile) {
+        throw new Error('No animation file is currently open');
+      }
+
+      const index = payload?.index;
+      if (!Number.isInteger(index) || index < 0 || index >= currentAniFile.frames) {
+        throw new Error(`Invalid frame index: ${index}`);
+      }
+
+      const start = currentAniFile.frameOffsets[index];
+      const end = start + currentAniFile.bytesPerFrame;
+      if (end > currentAniFile.data.length) {
+        throw new Error(`Frame out of bounds: ${index}`);
+      }
+      const frameBuffer = currentAniFile.data.subarray(start, end);
+      return frameBuffer.buffer.slice(frameBuffer.byteOffset, frameBuffer.byteOffset + frameBuffer.byteLength);
     });
 
     /**
@@ -516,9 +711,6 @@ const createWindow = (): void => {
               .raw()
               .toBuffer({ resolveWithObject: true });
             
-            // Notify renderer of progress
-            win.webContents.send('processedFrame', files[i].name);
-            
             // Extract individual pixels from raw data
             const pixels: [number, number, number][] = [];
             
@@ -665,7 +857,18 @@ const createWindow = (): void => {
             }
 
             // Write processed frame data to file
-            fileWriter.write(Buffer.from(output));
+            await new Promise<void>((resolveWrite, rejectWrite) => {
+              fileWriter.write(Buffer.from(output), (writeErr?: Error | null) => {
+                if (writeErr) {
+                  rejectWrite(writeErr);
+                  return;
+                }
+
+                // Notify renderer only after the frame has been fully transformed and written.
+                win.webContents.send('processedFrame', files[i].name);
+                resolveWrite();
+              });
+            });
             
           } catch (error) {
             console.error('Error processing frame:', error);

@@ -16,6 +16,7 @@ import React, { Fragment, useEffect, useState } from 'react';
 import Box from '@mui/material/Box';
 import Divider from '@mui/material/Divider';
 import Paper from '@mui/material/Paper';
+import Typography from '@mui/material/Typography';
 import { PreviewProps } from '../../types';
 
 /**
@@ -38,14 +39,17 @@ const Preview = ({ files, pause, imageOptions }: PreviewProps): JSX.Element => {
     if (files.length > 0) {
       return (
         <Fragment>
-          <Box sx={{ marginLeft: '10px' }}>
+          <Box sx={chipStyle}>
             Frames: <b>{files.length}</b>
           </Box>
-          <Box sx={{ marginLeft: '10px' }}>
+          <Box sx={chipStyle}>
             Width: <b>{files[0].width}</b>px
           </Box>
-          <Box sx={{ marginLeft: '10px' }}>
+          <Box sx={chipStyle}>
             Height: <b>{files[0].height}</b>px
+          </Box>
+          <Box sx={chipStyle}>
+            Frame: <b>{state + 1}</b>
           </Box>
         </Fragment>
       );
@@ -93,47 +97,59 @@ const Preview = ({ files, pause, imageOptions }: PreviewProps): JSX.Element => {
   };
 
   return (
-    <Box
-      style={{ padding: '8px', backgroundColor: 'lightgray' }}
-      component={Paper}
+    <Paper
+      elevation={0}
+      sx={{
+        p: 2,
+        borderRadius: 2,
+        border: '1px solid #d4dde8',
+        background: 'linear-gradient(180deg, #f9fbff 0%, #f2f5fb 100%)',
+      }}
     >
-      <div style={{ display: 'flex', alignItems: 'center' }}>
-        <b>Preview</b>
-        {/* Current frame indicator */}
-        <div
-          style={{
-            display: 'inline-block',
-            marginLeft: '6px',
-            fontSize: '12px',
-            width: '40px',
-            textAlign: 'center',
-          }}
-        >
-          {state}
-        </div>
-        {/* File metadata */}
+      <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 1 }}>
+        <Typography sx={{ fontWeight: 700, fontSize: 20, letterSpacing: 0.2 }}>
+          Preview
+        </Typography>
         {makeSize()}
-      </div>
-      <Divider style={{ marginBottom: '6px' }} />
-      {/* Original size preview with transformations */}
-      <img
-        style={{ maxWidth: '100%', ...handleOptions() }}
-        src={'atom://' + files[state].name}
-        alt={files[state].name}
-      />
-      <div style={{ height: '6px' }} />
-      {/* Fixed width (300px) preview with white border and transformations */}
-      <img
-        style={{
-          width: '300px',
-          border: '10px solid white',
-          ...handleOptions(),
+      </Box>
+
+      <Divider sx={{ my: 1.5 }} />
+
+      <Box
+        sx={{
+          p: 1.5,
+          borderRadius: 1.5,
+          border: '1px solid #d8dfec',
+          background:
+            'repeating-conic-gradient(#eef2f9 0% 25%, #f8faff 0% 50%) 50% / 14px 14px',
         }}
-        src={'atom://' + files[state].name}
-        alt={files[state].name}
-      />
-    </Box>
+      >
+        <img
+          style={{
+            width: '100%',
+            maxHeight: '260px',
+            minHeight: '64px',
+            objectFit: 'contain',
+            display: 'block',
+            imageRendering: 'pixelated',
+            ...handleOptions(),
+          }}
+          src={'atom://' + files[state].name}
+          alt={files[state].name}
+        />
+      </Box>
+    </Paper>
   );
+};
+
+const chipStyle = {
+  px: 1,
+  py: 0.35,
+  borderRadius: 1,
+  fontSize: 12,
+  color: '#31415a',
+  border: '1px solid #c8d4e7',
+  backgroundColor: '#ffffffcc',
 };
 
 export default Preview;

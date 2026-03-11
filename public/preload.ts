@@ -22,6 +22,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   chooseOutput: () => ipcRenderer.invoke('chooseOutput'),
   saveWbmAni: (path: string, data: Buffer) => ipcRenderer.invoke('saveWbmAni', path, data),
   openAniFile: () => ipcRenderer.invoke('openAniFile'),
+  getAniFrame: (index: number) => ipcRenderer.invoke('getAniFrame', { index }),
   export: (config: any) => ipcRenderer.send('export', config),
   cancelExport: () => ipcRenderer.invoke('cancelExport'),
   reactIsReady: () => ipcRenderer.send('reactIsReady'),

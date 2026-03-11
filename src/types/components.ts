@@ -2,17 +2,27 @@
  * Type definitions for React component props and state
  */
 
-import { FileInfo, ImageOptions, ColorFormat } from './fileFormat';
+import { FileInfo, ImageOptions, ColorFormat, WbmAniFile } from './fileFormat';
 
 /**
  * Props for the Generator component
  */
-export interface GeneratorProps {}
+export interface GeneratorProps {
+  /** Array of loaded image files */
+  files: FileInfo[];
+  /** Callback to update files */
+  setFiles: (files: FileInfo[]) => void;
+}
 
 /**
  * Props for the Player component
  */
-export interface PlayerProps {}
+export interface PlayerProps {
+  /** Currently loaded animation file */
+  file?: Partial<WbmAniFile> | null;
+  /** Callback to clear the file */
+  onClear?: () => void;
+}
 
 /**
  * Props for the Top (main navigation) component
@@ -36,6 +46,8 @@ export interface ExportProps {
   path: string;
   /** Image transformation options */
   imageOptions: ImageOptions;
+  /** Total number of frames expected to export */
+  totalFrames: number;
 }
 
 /**

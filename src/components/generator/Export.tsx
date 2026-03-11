@@ -12,6 +12,9 @@
  */
 
 import React, { useEffect, useState } from 'react';
+import Box from '@mui/material/Box';
+import LinearProgress from '@mui/material/LinearProgress';
+import Typography from '@mui/material/Typography';
 import { ExportProps } from '../../types';
 
 /**
@@ -23,11 +26,18 @@ import { ExportProps } from '../../types';
  * @param props.imageOptions - Image transformation and pixel ordering options
  * @returns The rendered export progress display
  */
-export default function Export({ close, format, path, imageOptions }: ExportProps): JSX.Element {
+export default function Export({ close, format, path, imageOptions, totalFrames }: ExportProps): JSX.Element {
   // Current frame being processed
   const [frameName, setFrameName] = useState<string>('');
+  const [processedFrames, setProcessedFrames] = useState<number>(0);
+
+  const safeTotalFrames = Math.max(totalFrames, 1);
+  const progress = Math.min(100, Math.round((processedFrames / safeTotalFrames) * 100));
 
   useEffect(() => {
+    setProcessedFrames(0);
+    setFrameName('');
+
     // Send export command to main process with all configuration
     window.k.send('export', { format, path, imageOptions });
 
@@ -36,6 +46,7 @@ export default function Export({ close, format, path, imageOptions }: ExportProp
      * Called when all frames have been processed and file is saved
      */
     window.k.receive('finishedExport', () => {
+      setProcessedFrames(safeTotalFrames);
       close();
     });
 
@@ -45,6 +56,7 @@ export default function Export({ close, format, path, imageOptions }: ExportProp
      */
     window.k.receive('processedFrame', (filename: string) => {
       setFrameName(filename);
+      setProcessedFrames(prev => Math.min(prev + 1, safeTotalFrames));
     });
 
     // Cleanup listeners on unmount
@@ -52,17 +64,29 @@ export default function Export({ close, format, path, imageOptions }: ExportProp
       window.k.removeListener('finishedExport');
       window.k.removeListener('processedFrame');
     };
-  }, [close, format, imageOptions, path]);
+  }, [close, format, imageOptions, path, safeTotalFrames]);
 
   return (
-    <div>
-      <div>Processing {frameName}</div>
-      {/* Preview of currently processing frame using custom atom:// protocol */}
-      <img
-        style={{ maxWidth: '100%' }}
-        src={`atom://${frameName}`}
-        alt="Current frame being processed"
+    <Box sx={{ mt: 1 }}>
+      <Typography sx={{ fontSize: 13, mb: 0.6, color: '#2d3f5f' }}>
+        {`Processed ${processedFrames}/${safeTotalFrames} frames (${progress}%)`}
+      </Typography>
+      <LinearProgress
+        variant="determinate"
+        value={progress}
+        sx={{ height: 8, borderRadius: 4, mb: 1.2, backgroundColor: '#e5edf7' }}
       />
-    </div>
+      <Typography sx={{ fontSize: 12, mb: 0.8, color: '#445a7d' }}>
+        {frameName ? `Processing ${frameName}` : 'Preparing export...'}
+      </Typography>
+      {/* Preview of currently processing frame using custom atom:// protocol */}
+      {frameName && (
+        <img
+          style={{ maxWidth: '100%' }}
+          src={`atom://${frameName}`}
+          alt="Current frame being processed"
+        />
+      )}
+    </Box>
   );
 }

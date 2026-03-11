@@ -34,6 +34,22 @@ import { ImageOptionsProps, ImageOptions } from '../../types';
  * @returns The rendered configuration panel
  */
 export default function ImageOptionsComponent({ setOptions }: ImageOptionsProps): JSX.Element {
+  type StartCorner = ImageOptions['startCorner'];
+  type PixelOrder = ImageOptions['pixelOrder'];
+
+  const supportedPixelOrders: Record<StartCorner, PixelOrder[]> = {
+    topLeft: ['horizontal', 'vertical', 'horizontalAlternate'],
+    topRight: ['horizontal', 'horizontalAlternate'],
+    bottomLeft: ['horizontal', 'verticalAlternate'],
+    bottomRight: ['vertical', 'verticalAlternate'],
+  };
+
+  const getValidPixelOrder = (startCorner: StartCorner, pixelOrder: PixelOrder): PixelOrder => {
+    const allowed = supportedPixelOrders[startCorner];
+    if (allowed.includes(pixelOrder)) return pixelOrder;
+    return allowed[0];
+  };
+
   // Current configuration state
   const [state, setState] = useState<ImageOptions>({
     flip: {
@@ -74,6 +90,10 @@ export default function ImageOptionsComponent({ setOptions }: ImageOptionsProps)
     return undefined;
   };
 
+  const isOrderSupported = (order: PixelOrder): boolean => {
+    return supportedPixelOrders[state.startCorner].includes(order);
+  };
+
   /**
    * Render start corner selection buttons
    * Four buttons representing the four corners of the LED matrix
@@ -89,7 +109,11 @@ export default function ImageOptionsComponent({ setOptions }: ImageOptionsProps)
             size="small"
             variant={startVariant('topLeft')}
             onClick={() =>
-              setState(old => ({ ...old, startCorner: 'topLeft' }))
+              setState(old => ({
+                ...old,
+                startCorner: 'topLeft',
+                pixelOrder: getValidPixelOrder('topLeft', old.pixelOrder),
+              }))
             }
           >
             <TransitEnterexit style={{ transform: 'rotate(90deg)' }} />
@@ -99,7 +123,11 @@ export default function ImageOptionsComponent({ setOptions }: ImageOptionsProps)
             size="small"
             variant={startVariant('bottomLeft')}
             onClick={() =>
-              setState(old => ({ ...old, startCorner: 'bottomLeft' }))
+              setState(old => ({
+                ...old,
+                startCorner: 'bottomLeft',
+                pixelOrder: getValidPixelOrder('bottomLeft', old.pixelOrder),
+              }))
             }
           >
             <TransitEnterexit />
@@ -109,7 +137,11 @@ export default function ImageOptionsComponent({ setOptions }: ImageOptionsProps)
             size="small"
             variant={startVariant('topRight')}
             onClick={() =>
-              setState(old => ({ ...old, startCorner: 'topRight' }))
+              setState(old => ({
+                ...old,
+                startCorner: 'topRight',
+                pixelOrder: getValidPixelOrder('topRight', old.pixelOrder),
+              }))
             }
           >
             <TransitEnterexit style={{ transform: 'rotate(180deg)' }} />
@@ -119,7 +151,11 @@ export default function ImageOptionsComponent({ setOptions }: ImageOptionsProps)
             size="small"
             variant={startVariant('bottomRight')}
             onClick={() =>
-              setState(old => ({ ...old, startCorner: 'bottomRight' }))
+              setState(old => ({
+                ...old,
+                startCorner: 'bottomRight',
+                pixelOrder: getValidPixelOrder('bottomRight', old.pixelOrder),
+              }))
             }
           >
             <TransitEnterexit style={{ transform: 'rotate(270deg)' }} />
@@ -202,6 +238,7 @@ export default function ImageOptionsComponent({ setOptions }: ImageOptionsProps)
         <Tooltip title="Horizontal">
           <Button
             size="small"
+            disabled={!isOrderSupported('horizontal')}
             variant={orderVariant('horizontal')}
             onClick={() =>
               setState(old => ({ ...old, pixelOrder: 'horizontal' }))
@@ -228,6 +265,7 @@ export default function ImageOptionsComponent({ setOptions }: ImageOptionsProps)
         <Tooltip title="Vertical">
           <Button
             size="small"
+            disabled={!isOrderSupported('vertical')}
             variant={orderVariant('vertical')}
             onClick={() =>
               setState(old => ({ ...old, pixelOrder: 'vertical' }))
@@ -253,6 +291,7 @@ export default function ImageOptionsComponent({ setOptions }: ImageOptionsProps)
         <Tooltip title="Vertical alternate">
           <Button
             size="small"
+            disabled={!isOrderSupported('verticalAlternate')}
             variant={orderVariant('verticalAlternate')}
             onClick={() =>
               setState(old => ({ ...old, pixelOrder: 'verticalAlternate' }))
@@ -282,6 +321,7 @@ export default function ImageOptionsComponent({ setOptions }: ImageOptionsProps)
         <Tooltip title="Horizontal alternate">
           <Button
             size="small"
+            disabled={!isOrderSupported('horizontalAlternate')}
             variant={orderVariant('horizontalAlternate')}
             onClick={() =>
               setState(old => ({ ...old, pixelOrder: 'horizontalAlternate' }))

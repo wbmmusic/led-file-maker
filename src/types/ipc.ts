@@ -41,8 +41,16 @@ export interface DownloadProgress {
  * Result from opening a .wbmani file
  */
 export interface OpenFileResult {
-  /** Raw file data */
-  data: Buffer;
+  /** Total frames in animation */
+  frames: number;
+  /** Frame width in pixels */
+  width: number;
+  /** Frame height in pixels */
+  height: number;
+  /** Stored channel format (rgb/rbg/...) */
+  format: string;
+  /** File size in bytes */
+  fileSize: number;
   /** Filename with extension */
   name: string;
 }
@@ -72,6 +80,10 @@ export interface IpcChannels {
     request: void;
     response: OpenFileResult | 'canceled';
   };
+  getAniFrame: {
+    request: { index: number };
+    response: ArrayBuffer;
+  };
   cancelExport: {
     request: void;
     response: 'canceled';
@@ -87,4 +99,10 @@ export interface IpcChannels {
   updater: [UpdaterEvent, UpdateInfo | DownloadProgress | Error | undefined];
   processedFrame: string; // filename
   finishedExport: void;
+  openAniProgress: {
+    phase: 'start' | 'reading' | 'done' | 'error';
+    loaded: number;
+    total: number;
+    percent: number;
+  };
 }
