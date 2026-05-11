@@ -13,14 +13,14 @@
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
-    "@mui/icons-material": "^9.0.0",
-    "@mui/lab": "9.0.0-beta.2",
-    "@mui/material": "^9.0.0",
+    "@mui/icons-material": "^9.0.1",
+    "@mui/lab": "9.0.0-beta.3",
+    "@mui/material": "^9.0.1",
     "electron-updater": "^6.8.3",
     "foreman": "^3.0.1",
     "image-size": "^2.0.2",
-    "react": "^19.2.5",
-    "react-dom": "^19.2.5",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
     "react-scripts": "^5.0.1",
     "sharp": "^0.34.5"
   },
@@ -65,13 +65,13 @@
     "@electron-forge/maker-zip": "7.11.1",
     "@electron-forge/plugin-vite": "7.11.1",
     "@electron-forge/publisher-github": "7.11.1",
-    "@types/node": "^25.6.0",
+    "@types/node": "^25.6.2",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.1",
-    "electron": "^41.5.0",
+    "electron": "^42.0.1",
     "typescript": "^6.0.3",
-    "vite": "8.0.10"
+    "vite": "8.0.11"
   },
   "repository": {
     "type": "git",
