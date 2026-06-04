@@ -19,8 +19,8 @@
     "electron-updater": "^6.8.3",
     "foreman": "^3.0.1",
     "image-size": "^2.0.2",
-    "react": "^19.2.6",
-    "react-dom": "^19.2.6",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
     "react-scripts": "^5.0.1",
     "sharp": "^0.34.5"
   },
@@ -66,12 +66,12 @@
     "@electron-forge/plugin-vite": "7.11.2",
     "@electron-forge/publisher-github": "7.11.2",
     "@types/node": "^25.9.1",
-    "@types/react": "^19.2.15",
+    "@types/react": "^19.2.16",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.2",
-    "electron": "^42.3.0",
+    "electron": "^42.3.3",
     "typescript": "^6.0.3",
-    "vite": "8.0.14"
+    "vite": "8.0.16"
   },
   "repository": {
     "type": "git",
