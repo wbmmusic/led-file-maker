@@ -80,16 +80,16 @@ importers:
         version: 19.2.4(@types/react@19.2.18)
       '@vitejs/plugin-react':
         specifier: ^6.0.5
-        version: 6.0.5(vite@8.2.0(@types/node@26.1.2)(esbuild@0.28.1)(jiti@1.21.7)(terser@5.49.0))
+        version: 6.0.5(vite@8.2.0(@types/node@26.1.2)(esbuild@0.28.1)(jiti@1.21.7)(terser@5.49.1))
       electron:
-        specifier: ^43.2.0
-        version: 43.2.0
+        specifier: ^43.3.0
+        version: 43.3.0
       typescript:
         specifier: ^7.0.2
         version: 7.0.2
       vite:
         specifier: 8.2.0
-        version: 8.2.0(@types/node@26.1.2)(esbuild@0.28.1)(jiti@1.21.7)(terser@5.49.0)
+        version: 8.2.0(@types/node@26.1.2)(esbuild@0.28.1)(jiti@1.21.7)(terser@5.49.1)
 
 packages:
 
@@ -3774,8 +3774,8 @@ packages:
     resolution: {integrity: sha512-bO3y10YikuUwUuDUQRM4KfwNkKhnpVO7IPdbsrejwN9/AABJzzTQ4GeHwyzNSrVO+tEH3/Np255a3sVZpZDjvg==}
     engines: {node: '>=8.0.0'}
 
-  electron@43.2.0:
-    resolution: {integrity: sha512-80zvrgG7ZRXD+tD0IyLvrnN9n+veSxadMRsMaC9wKKP3iUbtC7rGM8+dVuCmOb0Rrwwv8ESW4awnUZh9Hbp1fA==}
+  electron@43.3.0:
+    resolution: {integrity: sha512-nLlvu0WFjftWsSaTkV2B/c4NDuJBspTyXu8vKSQ6vLvFt8uG3NgN49LLKcXddwX0GqVvAQDhciWp+4xOdTdhew==}
     engines: {node: '>= 22.12.0'}
     hasBin: true
 
@@ -7401,8 +7401,8 @@ packages:
     engines: {node: '>=10'}
     hasBin: true
 
-  terser@5.49.0:
-    resolution: {integrity: sha512-SNiDnXyHSrxVcIOtVbULzcTmniUiwcV7Nwdyj1twVubeTmbjoa8p69KKDpfkdoOavuM4/GRm1+ykI8qqnavHoA==}
+  terser@5.49.1:
+    resolution: {integrity: sha512-7A2xlQ5EnGT8KPA92dUh6RbRYTVw8hEaEN9L1K68l4UOXFuV511NnAqObGoRqGOQofQcMypisu1s3xawCEHrvA==}
     engines: {node: '>=10'}
     hasBin: true
 
@@ -11094,10 +11094,10 @@ snapshots:
   '@typescript/typescript-win32-x64@7.0.2':
     optional: true
 
-  '@vitejs/plugin-react@6.0.5(vite@8.2.0(@types/node@26.1.2)(esbuild@0.28.1)(jiti@1.21.7)(terser@5.49.0))':
+  '@vitejs/plugin-react@6.0.5(vite@8.2.0(@types/node@26.1.2)(esbuild@0.28.1)(jiti@1.21.7)(terser@5.49.1))':
     dependencies:
       '@rolldown/pluginutils': 1.0.1
-      vite: 8.2.0(@types/node@26.1.2)(esbuild@0.28.1)(jiti@1.21.7)(terser@5.49.0)
+      vite: 8.2.0(@types/node@26.1.2)(esbuild@0.28.1)(jiti@1.21.7)(terser@5.49.1)
 
   '@vscode/sudo-prompt@9.3.2': {}
 
@@ -12427,7 +12427,7 @@ snapshots:
       - supports-color
     optional: true
 
-  electron@43.2.0:
+  electron@43.3.0:
     dependencies:
       '@electron-internal/extract-zip': 1.0.5
       '@electron/get': 5.1.0
@@ -16717,7 +16717,7 @@ snapshots:
       commander: 2.20.3
       source-map-support: 0.5.21
 
-  terser@5.49.0:
+  terser@5.49.1:
     dependencies:
       '@jridgewell/source-map': 0.3.11
       acorn: 8.18.0
@@ -17027,7 +17027,7 @@ snapshots:
 
   vary@1.1.2: {}
 
-  vite@8.2.0(@types/node@26.1.2)(esbuild@0.28.1)(jiti@1.21.7)(terser@5.49.0):
+  vite@8.2.0(@types/node@26.1.2)(esbuild@0.28.1)(jiti@1.21.7)(terser@5.49.1):
     dependencies:
       lightningcss: 1.33.0
       picomatch: 4.0.5
@@ -17039,7 +17039,7 @@ snapshots:
       esbuild: 0.28.1
       fsevents: 2.3.3
       jiti: 1.21.7
-      terser: 5.49.0
+      terser: 5.49.1
 
   w3c-hr-time@1.0.2:
     dependencies:
